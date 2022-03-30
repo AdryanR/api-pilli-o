@@ -1,6 +1,6 @@
 # Node.js Rest APIs with Express, Sequelize & MySQL.
 
-API criada para o desenvolvimento de uma aplicação de separação de pilulas via celular para um dispositivo com tecnologia embarcada, para a matéria de embarcados do Senac 4º Semestre, hospedado na nuvem através do Heroku: https://pills-api-final.herokuapp.com/api/pills/ .
+API criada para o desenvolvimento de uma aplicação de separação de pilulas via celular para um dispositivo com tecnologia embarcada, projeto de TCS, hospedado na nuvem através do Heroku.
 
 ## Project setup
 ```
@@ -14,4 +14,5 @@ node server.js
 
 #### Creator
 ```
+Adryan Rafael da Silva
 Anderson Bruns.
