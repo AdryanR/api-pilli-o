@@ -1,0 +1,25 @@
+{
+  "name": "nodejs-express-sequelize-mysql",
+  "version": "1.0.0",
+  "description": "Node.js Rest Apis with Express, Sequelize & MySQL for ADS Senac 4º semestre",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "rest",
+    "api",
+    "sequelize",
+    "mysql"
+  ],
+  "author": "Anderson Bruns",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "mysql2": "^2.3.3",
+    "sequelize": "^5.22.5"
+  }
+}
