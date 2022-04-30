@@ -20,5 +20,6 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 db.pills = require("./pills.model.js")(sequelize, Sequelize);
+db.machines = require("./machines.model.js")(sequelize, Sequelize);
 
 module.exports = db;
