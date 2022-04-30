@@ -5,7 +5,7 @@ module.exports = app => {
 
   router.post("/create", machines.create);
 
-  router.get("/all", pills.findAll);
+  router.get("/all", machines.findAll);
 
   app.use('/api/machines', router);
 };
