@@ -17,4 +17,4 @@ module.exports = (sequelize, Sequelize) => {
   return Pills;
 };
 
-//teste
+//testee
