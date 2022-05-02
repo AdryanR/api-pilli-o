@@ -7,5 +7,7 @@ module.exports = app => {
 
   router.get("/all", machines.findAll);
 
+  router.get("/addMaqResp/:maqid/:respid", machines.addMaqResp) // vincular Maquina C/ Resp.
+
   app.use('/api/machines', router);
 };

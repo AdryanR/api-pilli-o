@@ -15,7 +15,8 @@ exports.create = (req, res) => {
     data: req.body.data,
     hora: req.body.hora,
     repetir: req.body.repetir,
-    status:  req.body.status
+    status:  req.body.status,
+    idIdoso: req.body.ididoso
 }
 
   Pills.create(pills)

@@ -28,6 +28,9 @@ app.get("/", (req, res) => {
 });
 
 require("./app/routes/pills.routes")(app);
+require("./app/routes/machines.routes")(app);
+require("./app/routes/Resp.routes")(app);
+require("./app/routes/idosos.routes")(app);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 3000;
