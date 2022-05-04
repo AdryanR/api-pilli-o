@@ -5,7 +5,12 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   host: dbConfig.HOST,
   dialect: dbConfig.dialect,
   operatorsAliases: false,
-
+//   dialectOptions: {
+//     useUTC: false, //for reading from database
+//     dateStrings: true,
+//     typeCast: true
+// },
+// timezone: '-03:00',
   pool: {
     max: dbConfig.pool.max,
     min: dbConfig.pool.min,
@@ -24,6 +29,7 @@ db.machines = require("./machines.js")(sequelize, Sequelize);
 db.responsavel = require("./responsavel.js")(sequelize, Sequelize);
 db.Idoso = require("./idoso.js")(sequelize, Sequelize);
 db.MaquinaResp = require("./maquinaresp.js")(sequelize, Sequelize);
+db.disparo = require("./disparo.js")(sequelize, Sequelize);
 
 // relacionamento entre Máquina e responsavel... N:M
 db.responsavel.belongsToMany(db.machines, {
@@ -72,6 +78,18 @@ db.pills.belongsTo(db.Idoso, {
 db.Idoso.hasMany(db.pills, {
   foreignKey: 'idIdoso',
   as: "alarmes"
+})
+
+// relacionamento entre alarme e disparo (histórico)  1:N
+
+db.disparo.belongsTo(db.pills, {
+  constraint: true,
+  foreignKey: 'idAlarme'
+})
+
+db.pills.hasMany(db.disparo, {
+  foreignKey: 'idAlarme',
+  as: "disparos"
 })
 
 module.exports = db;

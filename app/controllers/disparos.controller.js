@@ -1,27 +1,26 @@
 const db = require("../models");
-const bcrypt = require("bcrypt");
 
-const Idoso = db.Idoso;
+const Disparo = db.disparo;
+const Alarme = db.pills;
 const Op = db.Sequelize.Op;
 
 exports.create = (req, res) => {
   // Validate request
-  if (!req.body.login) {
+  if (!req.body.dataDisparo) {
     res.status(400).send({
       message: "Content can not be empty!"
     });
     return;
   }
   
-  const idoso = {
-    login: req.body.login,
-    senha: req.body.senha,
-    nome: req.body.nome,
-    idMachine : req.body.idmachine,
-    idResp : req.body.idresp
+  const disparo = {
+    dataDisparo: req.body.dataDisparo,
+    horaDisparo: req.body.horaDisparo,
+    tomouRemedio: req.body.tomouRemedio,
+    idAlarme : req.body.idAlarme,
 }
 
-  Idoso.create(idoso)
+Disparo.create(disparo)
     .then(data => {
       res.send(data);
     })
@@ -35,7 +34,7 @@ exports.create = (req, res) => {
 
 // exports.findAll = (req, res) => {
   
-//   Idoso.findAll()
+//   Historico.findAll()
 //     .then(data => {
 //       res.send(data);
 //     })
@@ -47,32 +46,36 @@ exports.create = (req, res) => {
 //     });
 // };
 
-exports.auth = (req, res) => {
-   user = Idoso.findOne({ where : {login : req.body.login }})
-   .then(user => {
-    if(user){
-        //  const password_valid = await bcrypt.compare(req.body.password,user.password);
-        if(req.body.senha === user.senha){
-          res.status(200).send({
-            id: user.id
-          });
-        } else {
-          res.status(400).json({ error : "Password Incorrect"});
-        }
-    
-    }else{
-      res.status(404).json({ error : "User does not exist!" });
-    }
+exports.update = (req, res) => {
+  const id = req.params.id;
+
+  Disparo.update(req.body, {
+    where: { id: id }
   })
-  };
+    .then(num => {
+      if (num == 1) {
+        res.send({
+          message: "Disparo was updated successfully."
+        });
+      } else {
+        res.send({
+          message: `Cannot update Agenda with id=${id}. Maybe Agenda was not found or req.body is empty!`
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: "Error updating Disparo with id=" + id
+      });
+    });
+};
 
-
-  exports.findAllByIdoso = (req, res) => {
+  exports.findDisparoByAlarme = (req, res) => {
     const id = req.params.id;
 
-    Idoso.findAll({
+    Alarme.findAll({
       where: { id: id },
-      include: ["responsavel","maquinas","alarmes"]
+      include: ["disparos"]
     })
       .then(data => {
         res.send(data);

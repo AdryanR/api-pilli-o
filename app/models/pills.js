@@ -1,15 +1,24 @@
 module.exports = (sequelize, Sequelize) => {
   const Pills = sequelize.define("AGENDA", {
-    data: {
-      type: Sequelize.DATE
+    nomeRemedio: {
+      type: Sequelize.STRING
     },
-    hora: {
-      type: Sequelize.TIME
-    },
-    repetir: {
+    qtdeVezesRepetir: {
       type: Sequelize.INTEGER
     },
-    status: {
+    dataInicio: {
+      type: Sequelize.DATE
+    },
+    horaInicio: {
+      type: Sequelize.TIME
+    },
+    repetirEmQuantasHoras: {
+      type: Sequelize.INTEGER
+    },
+    ativo: {
+      type: Sequelize.INTEGER
+    },
+    excluido: {
       type: Sequelize.INTEGER
     }
   });

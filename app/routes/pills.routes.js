@@ -11,6 +11,12 @@ module.exports = app => {
   
   router.put("/alter/:id", pills.update);
 
+  //  router.get("/AlterByDose/:id", pills.AlterByDose);
+
+  router.get("/CreateOneDisparoByAlarme/:id", pills.CreateOneDisparoByAlarme);
+
+  router.get("/CreateProximoDisparo", pills.CreateProximoDisparo)
+
   router.delete("/delete/:id", pills.delete);
 
   app.use('/api/pills', router);

@@ -5,7 +5,7 @@ module.exports = app => {
 
   router.post("/create", idoso.create);
 
-  router.get("/all", idoso.findAll);
+  // router.get("/all", idoso.findAll);
 
   router.post("/auth", idoso.auth);
 
