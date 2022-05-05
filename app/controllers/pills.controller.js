@@ -1,6 +1,8 @@
 const db = require("../models");
 const Pills = db.pills;
 const Disparos = db.disparo;
+const Idosos = db.Idoso;
+const Alarmes = db.pills;
 const Op = db.Sequelize.Op;
 
 exports.create = (req, res) => {
@@ -26,6 +28,7 @@ exports.create = (req, res) => {
   Pills.create(pills)
     .then(data => {
       res.send(data);
+      PrimeiroDisparoByAlarme({id: data.id, dataInicio: pills.dataInicio, horaInicio: pills.horaInicio })
     })
     .catch(err => {
       res.status(500).send({
@@ -49,35 +52,44 @@ exports.findAll = (req, res) => {
     });
 };
 
-exports.returnEsp = (req, res) => {
+// recebe o código da máquina que vai verificar se há alarme...
+exports.returnEsp = async (req, res) => {
+ const maquina = req.params.maquina;
+ const resultados = await buscaDisparosByMaquina(maquina)
+ const jsonDisparo = JSON.parse(JSON.stringify(resultados));
+ let ret = "Não"
+ for (let disparo of jsonDisparo) {
+    let dataFinal = disparo.dataDisparo.substr(0, 11) + disparo.horaDisparo
+    let dataPills = new Date(dataFinal)
+    let dataAtual = new Date()
+    dataPills.setSeconds(0)
+    dataPills.setMilliseconds(0)
+    dataAtual.setSeconds(0)
+    dataAtual.setMilliseconds(0)
+    if(dataPills.toLocaleString() === dataAtual.toLocaleString()){
+        ret = "Disparar"
+        await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
+        break
+    }     
+ }
+  res.send([{message: ret}])
   
-  Pills.findAll()
-  .then(data => {
-    const jsonData = JSON.parse(JSON.stringify(data))
-    let ret = "Não"
-    for (var i = 0; i < jsonData.length; i++) {
-      let dataFinal = jsonData[i].dataInicio.substr(0, 11) + jsonData[i].horaInicio
-      let dataPills = new Date(dataFinal)
-      let dataAtual = new Date()
-      dataPills.setSeconds(0)
-      dataPills.setMilliseconds(0)
-      dataAtual.setSeconds(0)
-      dataAtual.setMilliseconds(0)
-      if(dataPills.toLocaleString() === dataAtual.toLocaleString() && (parseInt(jsonData[i].ativo) === 1)){
-           ret = "Sim"
-          this.AlterByDose(id = jsonData[i].id) // NÃO FUNCIONA DESSE JEITO SOMENTE PELA ROTA...
-           break
-      }     
-   }
-    res.send([{message: ret}])
-    // AlterByDose(id = jsonData[i].id)
-  })
-  .catch(err => {
-    res.status(500).send({
-      message:
-        err.message || "Some error occurred while retrieving pills."
-    });
+};
+
+async function buscaDisparosByMaquina(maquina) {
+ let idoso = await Idosos.findOne({
+  where: {
+    idMachine: maquina
+  }
   });
+
+  let disparos = await db.sequelize.query('SELECT * FROM disparoagendas WHERE idAlarme IN (SELECT `id` FROM `AGENDAs` AS `AGENDA` WHERE `AGENDA`.`ativo` = 1 AND `AGENDA`.`idIdoso` = (:id) )', {
+    replacements: {id: idoso.id},
+    type: db.sequelize.QueryTypes.SELECT
+  });
+
+  return disparos
+
 };
 
 exports.update = (req, res) => {
@@ -128,82 +140,59 @@ exports.delete = (req, res) => {
     });
 };
 
-exports.AlterByDose = (req, res, id) => {  // para atualizar qtde de remédios e desativar o alarme caso tenha acabado...
- console.log(id)
-  return Pills.findByPk(id)
-  .then((alarme) => {
-
-    if (!alarme) {
-      console.log("Alarme não encontrado ou erro grave.");
-      return null;
-    }
-      const dose = alarme.qtdeVezesRepetir-1;
-      if (dose === 0) {
-        alarme.ativo = 0;
-        alarme.qtdeVezesRepetir = dose;
-
-      } else {
-        alarme.qtdeVezesRepetir = dose;
-      }
-    
-      alarme.save();
-      res.status(200).send({
-        //  message: "Dose alterada!"
-      });
-})
+async function FauxiliarAlarme(idAlarme, dataDisparo, horaDisparo) {
+  let alarme = await Alarmes.findByPk(idAlarme)
+  await AlterByDose({id: alarme.id, qtdeVezesRepetir: alarme.qtdeVezesRepetir})
+  console.log("Repeticao 153: " + alarme.repetirEmQuantasHoras)
+  await CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, alarme.repetirEmQuantasHoras)
 };
 
-// talvez refatorar essa funcao para reutilizar ela pra criar os disparos, usar parametros...
+async function AlterByDose(alarme) {
+  const dose = alarme.qtdeVezesRepetir-1;
+  if (dose === 0) {
+    alarme.ativo = 0;
+    alarme.qtdeVezesRepetir = dose;
 
-exports.CreateOneDisparoByAlarme = (req, res) => {  // criar o PRIMEIRO disparo para um novo alarme definido...
-  const id = req.params.id;
+  } else {
+    alarme.qtdeVezesRepetir = dose;
+  }
 
-  return Pills.findByPk(id)
-  .then((alarme) => {
+  await Pills.update(alarme, {where: { id : alarme.id}} );
+}
 
-    if (!alarme) {
-      console.log("Alarme não encontrado ou erro grave.");
-      return null;
-    }
-
-    Disparos.create({
-      dataDisparo: alarme.dataInicio,
-      horaDisparo: alarme.horaInicio,
-      tomouRemedio: 0,
-      idAlarme : alarme.id,
-    })
-
+// cria o PRIMEIRO disparo para um novo alarme definido...
+async function PrimeiroDisparoByAlarme(alarme) {
+  
+  await Disparos.create({
+    dataDisparo: alarme.dataInicio,
+    horaDisparo: alarme.horaInicio,
+    tomouRemedio: 0,
+    idAlarme : alarme.id,
   })
-}
-
-//(req, res, data, hora)
-exports.CreateProximoDisparo = (req, res) => {
-  let idAlarme = 14;
-  let data = "2022-05-03T00:00:00.000Z"
-  let hora = "14:41:00"
-  let dataFinal = data.substr(0, 11) + hora
-  let dataPills = new Date(dataFinal) 
-  let proximaData = new Date()
-  
-  proximaData.setHours(dataPills.getHours() + 24); 
-
-  let DateText = proximaData.toString();
-  
-  let PHora = DateText.substr(0, 10)
-  let PData = DateText.substr(10, 17)
-
-      res.status(200).send({
-        message: dataPills
-      });
-
-    Disparos.create({
-      dataDisparo: PHora,
-      horaDisparo: PData,
-      tomouRemedio: 0,
-      idAlarme : idAlarme,
-    })
-
- 
 
 }
+
+// calcula e cria o proximo disparo mediante o disparo anterior de um alarme e a x de repetição.
+async function CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, repeticao) {
+  let dataString = dataDisparo.substr(0, 11) + horaDisparo
+  let dataDisparoAnterior = new Date(dataString)
+  let ProximoDisparo = dataDisparoAnterior
+  ProximoDisparo.setHours(dataDisparoAnterior.getHours() + repeticao);
+  const formataData = (datetime)=>{
+    let formatted_date = datetime.getFullYear() + "-0" + (datetime.getMonth() + 1) + "-0" + datetime.getDate() + " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds();
+    return formatted_date;}
+    
+  let dataFormatada = formataData(ProximoDisparo)
+  let novaData = dataFormatada.substring(0, 10);
+  let novaHora = dataFormatada.substring(11, 18);
+
+  await Disparos.create({
+    dataDisparo: novaData,
+    horaDisparo: novaHora,
+    tomouRemedio: 0,
+    idAlarme : idAlarme,
+  })
+
+}
+
 
