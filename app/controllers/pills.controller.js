@@ -67,7 +67,7 @@ exports.returnEsp = async (req, res) => {
     dataAtual.setSeconds(0)
     dataAtual.setMilliseconds(0)
     if(dataPills.toLocaleString() === dataAtual.toLocaleString()){
-        ret = "Disparar"
+        ret = "Disparar | " + disparo.id
         await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
         break
     }     
@@ -178,13 +178,24 @@ async function CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, repetica
   let dataDisparoAnterior = new Date(dataString)
   let ProximoDisparo = dataDisparoAnterior
   ProximoDisparo.setHours(dataDisparoAnterior.getHours() + repeticao);
+  console.log("Proximo disparo 180: " + ProximoDisparo)
+
   const formataData = (datetime)=>{
+    if (datetime.getDate() <= 10) {
+      let formatted_date = datetime.getFullYear() + "-0" + (datetime.getMonth() + 1) + "-" + datetime.getDate() + " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds();
+      return formatted_date;
+    } else {
     let formatted_date = datetime.getFullYear() + "-0" + (datetime.getMonth() + 1) + "-0" + datetime.getDate() + " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds();
-    return formatted_date;}
+    return formatted_date;
+    }
+  }
     
   let dataFormatada = formataData(ProximoDisparo)
+  console.log("Data formatada 187: " + dataFormatada)
   let novaData = dataFormatada.substring(0, 10);
+  console.log("Data 189: " + novaData)
   let novaHora = dataFormatada.substring(11, 18);
+  console.log("Hora 191: " + novaHora)
 
   await Disparos.create({
     dataDisparo: novaData,
