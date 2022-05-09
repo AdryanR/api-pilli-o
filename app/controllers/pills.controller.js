@@ -143,7 +143,6 @@ exports.delete = (req, res) => {
 async function FauxiliarAlarme(idAlarme, dataDisparo, horaDisparo) {
   let alarme = await Alarmes.findByPk(idAlarme)
   await AlterByDose({id: alarme.id, qtdeVezesRepetir: alarme.qtdeVezesRepetir})
-  console.log("Repeticao 153: " + alarme.repetirEmQuantasHoras)
   await CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, alarme.repetirEmQuantasHoras)
 };
 
@@ -178,7 +177,6 @@ async function CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, repetica
   let dataDisparoAnterior = new Date(dataString)
   let ProximoDisparo = dataDisparoAnterior
   ProximoDisparo.setHours(dataDisparoAnterior.getHours() + repeticao);
-  console.log("Proximo disparo 180: " + ProximoDisparo)
 
   const formataData = (datetime)=>{
     if (datetime.getDate() <= 10) {
@@ -191,11 +189,8 @@ async function CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, repetica
   }
     
   let dataFormatada = formataData(ProximoDisparo)
-  console.log("Data formatada 187: " + dataFormatada)
   let novaData = dataFormatada.substring(0, 10);
-  console.log("Data 189: " + novaData)
   let novaHora = dataFormatada.substring(11, 18);
-  console.log("Hora 191: " + novaHora)
 
   await Disparos.create({
     dataDisparo: novaData,

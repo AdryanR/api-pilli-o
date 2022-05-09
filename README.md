@@ -15,4 +15,3 @@ node server.js
 #### Creator
 ```
 Adryan Rafael da Silva
-Anderson Bruns.
