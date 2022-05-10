@@ -20,6 +20,9 @@ module.exports = (sequelize, Sequelize) => {
     },
     excluido: {
       type: Sequelize.INTEGER
+    },
+    compartimento: {
+      type: Sequelize.INTEGER
     }
   });
 

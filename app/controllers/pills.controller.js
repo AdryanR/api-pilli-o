@@ -22,7 +22,8 @@ exports.create = (req, res) => {
     repetirEmQuantasHoras: req.body.repetirEmQuantasHoras,
     ativo:  req.body.ativo,
     excluido: req.body.excluido,
-    idIdoso: req.body.ididoso
+    idIdoso: req.body.ididoso,
+    compartimento: req.body.compartimento
 }
 
   Pills.create(pills)
