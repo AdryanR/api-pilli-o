@@ -68,8 +68,9 @@ exports.returnEsp = async (req, res) => {
     dataAtual.setSeconds(0)
     dataAtual.setMilliseconds(0)
     if(dataPills.toLocaleString() === dataAtual.toLocaleString()){
-        ret = "Disparar | " + disparo.id
-        await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
+        // await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
+        let compartimento = await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
+        ret = "Disparar | " + disparo.id + " | " + compartimento
         break
     }     
  }
@@ -145,6 +146,7 @@ async function FauxiliarAlarme(idAlarme, dataDisparo, horaDisparo) {
   let alarme = await Alarmes.findByPk(idAlarme)
   await AlterByDose({id: alarme.id, qtdeVezesRepetir: alarme.qtdeVezesRepetir})
   await CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, alarme.repetirEmQuantasHoras)
+  return alarme.compartimento
 };
 
 async function AlterByDose(alarme) {
@@ -179,17 +181,20 @@ async function CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, repetica
   let ProximoDisparo = dataDisparoAnterior
   ProximoDisparo.setHours(dataDisparoAnterior.getHours() + repeticao);
 
+  console.log("proximo disparo: " + ProximoDisparo)
+
   const formataData = (datetime)=>{
     if (datetime.getDate() <= 10) {
-      let formatted_date = datetime.getFullYear() + "-0" + (datetime.getMonth() + 1) + "-" + datetime.getDate() + " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds();
+      let formatted_date = datetime.getFullYear() + "-0" + (datetime.getMonth() + 1) + "-0" + datetime.getDate() + " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds();
       return formatted_date;
     } else {
-    let formatted_date = datetime.getFullYear() + "-0" + (datetime.getMonth() + 1) + "-0" + datetime.getDate() + " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds();
+    let formatted_date = datetime.getFullYear() + "-0" + (datetime.getMonth() + 1) + "-" + datetime.getDate() + " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds();
     return formatted_date;
     }
   }
     
   let dataFormatada = formataData(ProximoDisparo)
+  console.log("data formatada: " + dataFormatada)
   let novaData = dataFormatada.substring(0, 10);
   let novaHora = dataFormatada.substring(11, 18);
 
