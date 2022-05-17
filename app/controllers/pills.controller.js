@@ -58,6 +58,9 @@ exports.returnEsp = async (req, res) => {
  const maquina = req.params.maquina;
  const resultados = await buscaDisparosByMaquina(maquina)
  const jsonDisparo = JSON.parse(JSON.stringify(resultados));
+ let retorno = {
+   resposta : "Não"
+ }
  let ret = "Não"
  for (let disparo of jsonDisparo) {
     let dataFinal = disparo.dataDisparo.substr(0, 11) + disparo.horaDisparo
@@ -70,11 +73,15 @@ exports.returnEsp = async (req, res) => {
     if(dataPills.toLocaleString() === dataAtual.toLocaleString()){
         // await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
         let compartimento = await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
-        ret = "Disparar | " + disparo.id + " | " + compartimento
+          retorno = {
+          resposta : "Sim",
+          idDisparo : disparo.id,
+          compartimento: compartimento
+        }
         break
     }     
  }
-  res.send([{message: ret}])
+  res.send(retorno)
   
 };
 
