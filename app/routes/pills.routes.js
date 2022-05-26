@@ -7,7 +7,7 @@ module.exports = app => {
 
   router.get("/all", pills.findAll);
 
-  router.get("/return/:maquina", pills.returnEsp)
+  //router.get("/return/:maquina", pills.returnEsp)
   
   router.put("/alter/:id", pills.update);
 

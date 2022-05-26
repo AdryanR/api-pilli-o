@@ -33,6 +33,16 @@ require("./app/routes/Resp.routes")(app);
 require("./app/routes/idosos.routes")(app);
 require("./app/routes/disparos.routes")(app);
 
+
+const CronJob = require('cron').CronJob;
+const PillsController = require("./app/controllers/pills.controller");
+const job = new CronJob('0 * * * * *', () => {
+  PillsController.returnEsp();
+}, null, true, 'America/Sao_Paulo')
+
+
+
+
 // set port, listen for requests
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

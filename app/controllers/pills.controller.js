@@ -3,7 +3,10 @@ const Pills = db.pills;
 const Disparos = db.disparo;
 const Idosos = db.Idoso;
 const Alarmes = db.pills;
-const Op = db.Sequelize.Op;
+const Maquinas = db.machines;
+//const mqttServer = require("../config/mqtt.config.js");
+const mqtt = require('mqtt')
+//const Op = db.Sequelize.Op;
 
 exports.create = (req, res) => {
   // Validate request
@@ -20,16 +23,16 @@ exports.create = (req, res) => {
     horaInicio: req.body.horaInicio,
     qtdeVezesRepetir: req.body.qtdeVezesRepetir,
     repetirEmQuantasHoras: req.body.repetirEmQuantasHoras,
-    ativo:  req.body.ativo,
+    ativo: req.body.ativo,
     excluido: req.body.excluido,
     idIdoso: req.body.ididoso,
     compartimento: req.body.compartimento
-}
+  }
 
   Pills.create(pills)
     .then(data => {
       res.send(data);
-      PrimeiroDisparoByAlarme({id: data.id, dataInicio: pills.dataInicio, horaInicio: pills.horaInicio })
+      PrimeiroDisparoByAlarme({ id: data.id, dataInicio: pills.dataInicio, horaInicio: pills.horaInicio })
     })
     .catch(err => {
       res.status(500).send({
@@ -40,7 +43,7 @@ exports.create = (req, res) => {
 };
 
 exports.findAll = (req, res) => {
-  
+
   Pills.findAll()
     .then(data => {
       res.send(data);
@@ -55,45 +58,93 @@ exports.findAll = (req, res) => {
 
 // recebe o código da máquina que vai verificar se há alarme...
 exports.returnEsp = async (req, res) => {
- const maquina = req.params.maquina;
- const resultados = await buscaDisparosByMaquina(maquina)
- const jsonDisparo = JSON.parse(JSON.stringify(resultados));
- let retorno = {
-   resposta : "Não"
- }
- let ret = "Não"
- for (let disparo of jsonDisparo) {
-    let dataFinal = disparo.dataDisparo.substr(0, 11) + disparo.horaDisparo
-    let dataPills = new Date(dataFinal)
-    let dataAtual = new Date()
-    dataPills.setSeconds(0)
-    dataPills.setMilliseconds(0)
-    dataAtual.setSeconds(0)
-    dataAtual.setMilliseconds(0)
-    if(dataPills.toLocaleString() === dataAtual.toLocaleString()){
+  let maquinas = await Maquinas.findAll();
+  const jsonMaquinas = JSON.parse(JSON.stringify(maquinas));
+
+  for (let m of jsonMaquinas) {
+    const resultados = await buscaDisparosByMaquina(m.id)
+
+    const jsonDisparo = JSON.parse(JSON.stringify(resultados));
+
+
+    for (let disparo of jsonDisparo) {
+      let dataFinal = disparo.dataDisparo.substr(0, 11) + disparo.horaDisparo
+      let dataPills = new Date(dataFinal)
+      let dataAtual = new Date()
+      dataPills.setSeconds(0)
+      dataPills.setMilliseconds(0)
+      dataAtual.setSeconds(0)
+      dataAtual.setMilliseconds(0)
+      if (dataPills.toLocaleString() === dataAtual.toLocaleString()) {
         // await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
         let compartimento = await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
-          retorno = {
-          resposta : "Sim",
-          idDisparo : disparo.id,
+        /* let retorno = {
+          resposta: "Sim",
+          idDisparo: disparo.id,
           compartimento: compartimento
-        }
+        } */
+
+        await RequestMQTT(m.id_maq, disparo.id, compartimento);
         break
-    }     
- }
-  res.send(retorno)
-  
+      }
+    }
+  }
+  //res.send(retorno)
+  console.log("disparou...")
+
+  //await RequestMQTT(30, 0, 0); //testes
+
 };
 
+
+async function RequestMQTT(maquina, idDisparo, compartimento) {
+
+  const host = 'xaf606cf.us-east-1.emqx.cloud'
+  const port = '15118'
+  const clientId = `mqttServerNODEJS`
+
+  const connectUrl = `mqtt://${host}:${port}`
+  const client = mqtt.connect(connectUrl, {
+    clientId,
+    clean: true,
+    connectTimeout: 4000,
+    username: 'admin',
+    password: 'a%!undQWy7ys',
+    //reconnectPeriod: 1000,
+  }) 
+
+  let maqString = maquina + '';
+  let idDisparoString = idDisparo + '';
+  let compartimentoString = compartimento + '';
+  let retorno = '{"resposta": "Sim",' + '"idDisparo":' + idDisparoString + ',"compartimento":' + compartimentoString + '}';
+
+ /*  {
+    "resposta": "Sim",
+    "idDisparo": 1034,
+    "compartimento": 6
+  } */
+
+  client.on('connect', () => {
+    console.log('Connected')
+    client.publish(maqString, retorno, { qos: 0, retain: false }, (error) => {
+      if (error) {
+        console.error(error)
+      }
+      client.end();
+    })
+  })
+}
+
+
 async function buscaDisparosByMaquina(maquina) {
- let idoso = await Idosos.findOne({
-  where: {
-    idMachine: maquina
-  }
+  let idoso = await Idosos.findOne({
+    where: {
+      idMachine: maquina
+    }
   });
 
   let disparos = await db.sequelize.query('SELECT * FROM disparoagendas WHERE idAlarme IN (SELECT `id` FROM `AGENDAs` AS `AGENDA` WHERE `AGENDA`.`ativo` = 1 AND `AGENDA`.`idIdoso` = (:id) )', {
-    replacements: {id: idoso.id},
+    replacements: { id: idoso.id },
     type: db.sequelize.QueryTypes.SELECT
   });
 
@@ -151,13 +202,13 @@ exports.delete = (req, res) => {
 
 async function FauxiliarAlarme(idAlarme, dataDisparo, horaDisparo) {
   let alarme = await Alarmes.findByPk(idAlarme)
-  await AlterByDose({id: alarme.id, qtdeVezesRepetir: alarme.qtdeVezesRepetir})
+  await AlterByDose({ id: alarme.id, qtdeVezesRepetir: alarme.qtdeVezesRepetir })
   await CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, alarme.repetirEmQuantasHoras)
   return alarme.compartimento
 };
 
 async function AlterByDose(alarme) {
-  const dose = alarme.qtdeVezesRepetir-1;
+  const dose = alarme.qtdeVezesRepetir - 1;
   if (dose === 0) {
     alarme.ativo = 0;
     alarme.qtdeVezesRepetir = dose;
@@ -166,17 +217,17 @@ async function AlterByDose(alarme) {
     alarme.qtdeVezesRepetir = dose;
   }
 
-  await Pills.update(alarme, {where: { id : alarme.id}} );
+  await Pills.update(alarme, { where: { id: alarme.id } });
 }
 
 // cria o PRIMEIRO disparo para um novo alarme definido...
 async function PrimeiroDisparoByAlarme(alarme) {
-  
+
   await Disparos.create({
     dataDisparo: alarme.dataInicio,
     horaDisparo: alarme.horaInicio,
     tomouRemedio: 0,
-    idAlarme : alarme.id,
+    idAlarme: alarme.id,
   })
 
 }
@@ -190,16 +241,16 @@ async function CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, repetica
 
   console.log("proximo disparo: " + ProximoDisparo)
 
-  const formataData = (datetime)=>{
+  const formataData = (datetime) => {
     if (datetime.getDate() <= 10) {
       let formatted_date = datetime.getFullYear() + "-0" + (datetime.getMonth() + 1) + "-0" + datetime.getDate() + " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds();
       return formatted_date;
     } else {
-    let formatted_date = datetime.getFullYear() + "-0" + (datetime.getMonth() + 1) + "-" + datetime.getDate() + " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds();
-    return formatted_date;
+      let formatted_date = datetime.getFullYear() + "-0" + (datetime.getMonth() + 1) + "-" + datetime.getDate() + " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds();
+      return formatted_date;
     }
   }
-    
+
   let dataFormatada = formataData(ProximoDisparo)
   console.log("data formatada: " + dataFormatada)
   let novaData = dataFormatada.substring(0, 10);
@@ -209,7 +260,7 @@ async function CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, repetica
     dataDisparo: novaData,
     horaDisparo: novaHora,
     tomouRemedio: 0,
-    idAlarme : idAlarme,
+    idAlarme: idAlarme,
   })
 
 }

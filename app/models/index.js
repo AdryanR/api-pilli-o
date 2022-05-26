@@ -1,16 +1,17 @@
 const dbConfig = require("../config/db.config.js");
+//const CronJob = require('cron').CronJob;
 
 const Sequelize = require("sequelize");
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   host: dbConfig.HOST,
   dialect: dbConfig.dialect,
   operatorsAliases: false,
-//   dialectOptions: {
-//     useUTC: false, //for reading from database
-//     dateStrings: true,
-//     typeCast: true
-// },
-// timezone: '-03:00',
+  //   dialectOptions: {
+  //     useUTC: false, //for reading from database
+  //     dateStrings: true,
+  //     typeCast: true
+  // },
+  // timezone: '-03:00',
   pool: {
     max: dbConfig.pool.max,
     min: dbConfig.pool.min,
@@ -18,6 +19,7 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     idle: dbConfig.pool.idle
   }
 });
+
 
 const db = {};
 
