@@ -57,7 +57,7 @@ exports.findAll = (req, res) => {
 };
 
 // recebe o código da máquina que vai verificar se há alarme...
-exports.returnEsp = async (req, res) => {
+exports.returnEsp = async () => {
   let maquinas = await Maquinas.findAll();
   const jsonMaquinas = JSON.parse(JSON.stringify(maquinas));
 
@@ -76,15 +76,11 @@ exports.returnEsp = async (req, res) => {
       dataAtual.setSeconds(0)
       dataAtual.setMilliseconds(0)
       if (dataPills.toLocaleString() === dataAtual.toLocaleString()) {
-        // await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
-        let compartimento = await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
-        /* let retorno = {
-          resposta: "Sim",
-          idDisparo: disparo.id,
-          compartimento: compartimento
-        } */
 
-        await RequestMQTT(m.id_maq, disparo.id, compartimento);
+        let compartimento = await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
+
+        await RequestMQTT(m.id_maq, disparo.id, compartimento, disparo.idAlarme, disparo.horaDisparo);
+        console.log("DISPAROU DATA E HORA IGUAIS")
         break
       }
     }
@@ -97,11 +93,11 @@ exports.returnEsp = async (req, res) => {
 };
 
 
-async function RequestMQTT(maquina, idDisparo, compartimento) {
+async function RequestMQTT(maquina, idDisparo, compartimento, idAlarme, horaDisparo) {
 
   const host = 'xaf606cf.us-east-1.emqx.cloud'
   const port = '15118'
-  const clientId = `mqttServerNODEJS`
+  const clientId = `mqttServerAPI`
 
   const connectUrl = `mqtt://${host}:${port}`
   const client = mqtt.connect(connectUrl, {
@@ -118,15 +114,23 @@ async function RequestMQTT(maquina, idDisparo, compartimento) {
   let compartimentoString = compartimento + '';
   let retorno = '{"resposta": "Sim",' + '"idDisparo":' + idDisparoString + ',"compartimento":' + compartimentoString + '}';
 
- /*  {
-    "resposta": "Sim",
-    "idDisparo": 1034,
-    "compartimento": 6
-  } */
+  let alarme = await Alarmes.findByPk(idAlarme)
+  let idoso = await Idosos.findByPk(alarme.idIdoso)
+  
+  let doseString = alarme.qtdeVezesRepetir + '';
+  let idIdosoString = alarme.idIdoso + '';
+  let idAlarmeString = idAlarme + '';
+  let topicoNotifacacao = "api/elderly/" + idIdosoString + "/alarm/notification"
 
+  let notificacao = '{"idIdoso":' + idIdosoString + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + compartimentoString + ',"QtdeTomar":' + doseString + ',"horaDisparo":' + horaDisparo + ',"idAlarme":' + idAlarmeString + '}';
   client.on('connect', () => {
     console.log('Connected')
     client.publish(maqString, retorno, { qos: 0, retain: false }, (error) => {
+      if (error) {
+        console.error(error)
+      }
+    })
+    client.publish(topicoNotifacacao, notificacao, { qos: 0, retain: false }, (error) => {
       if (error) {
         console.error(error)
       }
