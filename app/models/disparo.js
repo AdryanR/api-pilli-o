@@ -8,6 +8,9 @@ module.exports = (sequelize, Sequelize) => {
     },
     tomouRemedio: {
       type: Sequelize.INTEGER
+    },
+    compartimento: {
+      type: Sequelize.INTEGER
     }
   });
 

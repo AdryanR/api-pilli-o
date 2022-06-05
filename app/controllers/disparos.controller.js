@@ -17,6 +17,7 @@ exports.create = (req, res) => {
     dataDisparo: req.body.dataDisparo,
     horaDisparo: req.body.horaDisparo,
     tomouRemedio: req.body.tomouRemedio,
+    compartimento: req.body.compartimento,
     idAlarme : req.body.idAlarme,
 }
 

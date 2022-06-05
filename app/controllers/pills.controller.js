@@ -26,13 +26,13 @@ exports.create = (req, res) => {
     ativo: req.body.ativo,
     excluido: req.body.excluido,
     idIdoso: req.body.ididoso,
-    compartimento: req.body.compartimento
+    compartimentos: req.body.compartimentos
   }
 
   Pills.create(pills)
     .then(data => {
       res.send(data);
-      PrimeiroDisparoByAlarme({ id: data.id, dataInicio: pills.dataInicio, horaInicio: pills.horaInicio })
+      PrimeiroDisparoByAlarme({ id: data.id, dataInicio: pills.dataInicio, horaInicio: pills.horaInicio, compartimentos: pills.compartimentos })
     })
     .catch(err => {
       res.status(500).send({
@@ -77,18 +77,15 @@ exports.returnEsp = async () => {
       dataAtual.setMilliseconds(0)
       if (dataPills.toLocaleString() === dataAtual.toLocaleString()) {
 
-        let compartimento = await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
+        await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
 
-        await RequestMQTT(m.id_maq, disparo.id, compartimento, disparo.idAlarme, disparo.horaDisparo);
-        console.log("DISPAROU DATA E HORA IGUAIS")
+        await RequestMQTT(m.id_maq, disparo.id, disparo.compartimento, disparo.idAlarme, disparo.horaDisparo);
         break
       }
     }
   }
-  //res.send(retorno)
-  console.log("disparou...")
 
-  //await RequestMQTT(30, 0, 0); //testes
+  console.log("disparou...")
 
 };
 
@@ -107,7 +104,7 @@ async function RequestMQTT(maquina, idDisparo, compartimento, idAlarme, horaDisp
     username: 'admin',
     password: 'a%!undQWy7ys',
     //reconnectPeriod: 1000,
-  }) 
+  })
 
   let maqString = maquina + '';
   let idDisparoString = idDisparo + '';
@@ -116,7 +113,7 @@ async function RequestMQTT(maquina, idDisparo, compartimento, idAlarme, horaDisp
 
   let alarme = await Alarmes.findByPk(idAlarme)
   let idoso = await Idosos.findByPk(alarme.idIdoso)
-  
+
   let doseString = alarme.qtdeVezesRepetir + '';
   let idIdosoString = alarme.idIdoso + '';
   let idAlarmeString = idAlarme + '';
@@ -206,12 +203,61 @@ exports.delete = (req, res) => {
 
 async function FauxiliarAlarme(idAlarme, dataDisparo, horaDisparo) {
   let alarme = await Alarmes.findByPk(idAlarme)
-  await AlterByDose({ id: alarme.id, qtdeVezesRepetir: alarme.qtdeVezesRepetir })
-  await CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, alarme.repetirEmQuantasHoras)
-  return alarme.compartimento
+  let ProximoComp = await AlterByMetodoUso({ id: alarme.id, qtdeVezesRepetir: alarme.qtdeVezesRepetir, compartimentos: alarme.compartimentos })
+  if (ProximoComp !== 0) {
+    await CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, alarme.repetirEmQuantasHoras, ProximoComp)
+  }
 };
 
+async function AlterByMetodoUso(alarme) {
+
+  let resultados = await db.sequelize.query('SELECT disparo.compartimento, agenda.qtdeVezesRepetir, agenda.compartimentos FROM disparoagendas disparo INNER JOIN agendas agenda ON agenda.id = :id WHERE disparo.idAlarme = :id order by disparo.createdAt desc limit 1', {
+    replacements: { id: alarme.id },
+    type: db.sequelize.QueryTypes.SELECT
+  });
+
+  let qtdeDoses = resultados[0].qtdeVezesRepetir
+  let compartimentos = resultados[0].compartimentos
+  let ultimoComp = resultados[0].compartimento
+
+  const qtdCompartimentos = compartimentos.split(",").length
+  const comps = compartimentos.split(",");
+
+  if (qtdeDoses > 1 && qtdCompartimentos === 1) {
+    await AlterByDose({ id: alarme.id, qtdeVezesRepetir: alarme.qtdeVezesRepetir })
+    let compDisparo = comps[0];
+    return compDisparo
+  }
+
+  else if (qtdeDoses === qtdCompartimentos) {
+    let indiceDoValorDoUltimoComp = comps.indexOf(ultimoComp, 0)
+    let valorProximoCompartimento = comps[indiceDoValorDoUltimoComp + 1];
+
+    const dose = alarme.qtdeVezesRepetir - 1;
+    if (dose === 0) {
+      alarme.ativo = 0;
+      alarme.qtdeVezesRepetir = dose;
+
+    } else {
+      alarme.qtdeVezesRepetir = dose;
+    }
+    comps.splice(indiceDoValorDoUltimoComp, 1)
+    let compsString = comps.toString();
+    alarme.compartimentos = compsString;
+    await Pills.update(alarme, { where: { id: alarme.id } });
+
+    if (dose !== 0) {
+      return valorProximoCompartimento
+    }
+    else {
+      let retorno = 0
+      return retorno
+    }
+  }
+}
+
 async function AlterByDose(alarme) {
+
   const dose = alarme.qtdeVezesRepetir - 1;
   if (dose === 0) {
     alarme.ativo = 0;
@@ -222,22 +268,27 @@ async function AlterByDose(alarme) {
   }
 
   await Pills.update(alarme, { where: { id: alarme.id } });
+
 }
 
 // cria o PRIMEIRO disparo para um novo alarme definido...
 async function PrimeiroDisparoByAlarme(alarme) {
 
+  let comps = alarme.compartimentos.split(",");
+  let primeiroComp = comps[0];
+
   await Disparos.create({
     dataDisparo: alarme.dataInicio,
     horaDisparo: alarme.horaInicio,
     tomouRemedio: 0,
+    compartimento: primeiroComp,
     idAlarme: alarme.id,
   })
 
 }
 
 // calcula e cria o proximo disparo mediante o disparo anterior de um alarme e a x de repetição.
-async function CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, repeticao) {
+async function CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, repeticao, ProximoComp) {
   let dataString = dataDisparo.substr(0, 11) + horaDisparo
   let dataDisparoAnterior = new Date(dataString)
   let ProximoDisparo = dataDisparoAnterior
@@ -264,6 +315,7 @@ async function CreateProximoDisparo(idAlarme, dataDisparo, horaDisparo, repetica
     dataDisparo: novaData,
     horaDisparo: novaHora,
     tomouRemedio: 0,
+    compartimento: ProximoComp,
     idAlarme: idAlarme,
   })
 
