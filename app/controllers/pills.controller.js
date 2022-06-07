@@ -77,7 +77,7 @@ exports.returnEsp = async () => {
 
         await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
 
-        await RequestMQTT(m.id_maq, disparo.id, disparo.compartimento, disparo.idAlarme, disparo.horaDisparo);
+        await RequestMQTT(m.codigoMaquina, disparo.id, disparo.compartimento, disparo.idAlarme, disparo.horaDisparo);
         break
       }
     }

@@ -15,7 +15,7 @@ exports.create = (req, res) => {
   const machines = {
     id_maq: req.body.id_maq,
     LoginId: req.body.LoginId
-}
+  }
 
   Machines.create(machines)
     .then(data => {
@@ -30,7 +30,7 @@ exports.create = (req, res) => {
 };
 
 exports.findAll = (req, res) => {
-  
+
   Machines.findAll()
     .then(data => {
       res.send(data);
@@ -43,6 +43,22 @@ exports.findAll = (req, res) => {
     });
 };
 
+
+// endpoint usado pelo dispenser para verificar se foi configurado para um user
+exports.VerificaConfigMaqUser = async (req, res) => {
+  const idMaquina = req.params.idMaquina;
+
+  let configExists = await db.sequelize.query('SELECT EXISTS( SELECT * FROM idosos IDS INNER JOIN maquinas MAQ ON MAQ.id = IDS.idMachine WHERE MAQ.codigoMaquina = :id ) AS estaConfigurado', {
+    replacements: { id: idMaquina },
+    type: db.sequelize.QueryTypes.SELECT
+  });
+
+  if (configExists[0].estaConfigurado) {
+    res.send("true");
+  } else {
+    res.send("false");
+  }
+};
 
 // Relacionamento entre máquinas e login responsável //
 
