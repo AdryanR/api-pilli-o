@@ -214,6 +214,7 @@ async function AlterByMetodoUso(alarme) {
     type: db.sequelize.QueryTypes.SELECT
   });
 
+  console.log(resultados)
   let qtdeDoses = resultados[0].qtdeVezesRepetir
   let compartimentos = resultados[0].compartimentos
   let ultimoComp = resultados[0].compartimento
@@ -228,9 +229,10 @@ async function AlterByMetodoUso(alarme) {
   }
 
   else if (qtdeDoses === qtdCompartimentos) {
-    let indiceDoValorDoUltimoComp = comps.indexOf(ultimoComp, 0)
+    let indiceDoValorDoUltimoComp = comps.indexOf(ultimoComp.toString(), 0)
     let valorProximoCompartimento = comps[indiceDoValorDoUltimoComp + 1];
-
+    console.log("proximo comp::: ")
+    console.log(valorProximoCompartimento)
     const dose = alarme.qtdeVezesRepetir - 1;
     if (dose === 0) {
       alarme.ativo = 0;
@@ -241,6 +243,8 @@ async function AlterByMetodoUso(alarme) {
     }
     comps.splice(indiceDoValorDoUltimoComp, 1)
     let compsString = comps.toString();
+    console.log("novos comps::: ")
+    console.log(compsString)
     alarme.compartimentos = compsString;
     await Pills.update(alarme, { where: { id: alarme.id } });
 
