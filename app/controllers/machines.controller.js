@@ -46,7 +46,7 @@ exports.findAll = (req, res) => {
 
 // Relacionamento entre máquinas e login responsável //
 
-exports.addMaqResp = (req, res) => {
+/* exports.addMaqResp = (req, res) => {
   const maqid = req.params.maqid;
   const respid = req.params.respid;
   return Responsavel.findByPk(respid)
@@ -70,4 +70,4 @@ exports.addMaqResp = (req, res) => {
     .catch((err) => {
       console.log(">> Houve um erro grave no vinculo: ", err);
     });
-};
+}; */

@@ -1,5 +1,4 @@
 const db = require("../models");
-const bcrypt = require("bcrypt");
 
 const Idoso = db.Idoso;
 const Op = db.Sequelize.Op;
@@ -12,14 +11,14 @@ exports.create = (req, res) => {
     });
     return;
   }
-  
+
   const idoso = {
-    login: req.body.login,
-    senha: req.body.senha,
     nome: req.body.nome,
-    idMachine : req.body.idmachine,
-    idResp : req.body.idresp
-}
+    login: req.body.login,
+    idMachine: req.body.idmachine,
+    idResp: req.body.idresp,
+    firebaseUserUid: req.body.firebaseUserUid
+  }
 
   Idoso.create(idoso)
     .then(data => {
@@ -34,7 +33,7 @@ exports.create = (req, res) => {
 };
 
 // exports.findAll = (req, res) => {
-  
+
 //   Idoso.findAll()
 //     .then(data => {
 //       res.send(data);
@@ -47,40 +46,21 @@ exports.create = (req, res) => {
 //     });
 // };
 
-exports.auth = (req, res) => {
-   user = Idoso.findOne({ where : {login : req.body.login }})
-   .then(user => {
-    if(user){
-        //  const password_valid = await bcrypt.compare(req.body.password,user.password);
-        if(req.body.senha === user.senha){
-          res.status(200).send({
-            id: user.id
-          });
-        } else {
-          res.status(400).json({ error : "Password Incorrect"});
-        }
-    
-    }else{
-      res.status(404).json({ error : "User does not exist!" });
-    }
+
+exports.findAllByIdoso = (req, res) => {
+  const id = req.params.id;
+
+  Idoso.findAll({
+    where: { id: id },
+    include: ["responsavel", "maquinas", "alarmes"]
   })
-  };
-
-
-  exports.findAllByIdoso = (req, res) => {
-    const id = req.params.id;
-
-    Idoso.findAll({
-      where: { id: id },
-      include: ["responsavel","maquinas","alarmes"]
+    .then(data => {
+      res.send(data);
     })
-      .then(data => {
-        res.send(data);
-      })
-      .catch(err => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving pills."
-        });
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving pills."
       });
-  };
+    });
+};

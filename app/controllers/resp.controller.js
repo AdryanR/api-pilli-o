@@ -1,5 +1,4 @@
 const db = require("../models");
-const bcrypt = require("bcrypt");
 
 const Responsavel = db.responsavel;
 const Op = db.Sequelize.Op;
@@ -12,12 +11,12 @@ exports.create = (req, res) => {
     });
     return;
   }
-  
+
   const responsavel = {
+    nome: req.body.nome,
     login: req.body.login,
-    senha: req.body.senha,
-    nome: req.body.nome
-}
+    firebaseUserUid: req.body.firebaseUserUid
+  }
 
   Responsavel.create(responsavel)
     .then(data => {
@@ -32,7 +31,7 @@ exports.create = (req, res) => {
 };
 
 exports.findAll = (req, res) => {
-  
+
   Responsavel.findAll()
     .then(data => {
       res.send(data);
@@ -45,40 +44,21 @@ exports.findAll = (req, res) => {
     });
 };
 
-exports.auth = (req, res) => {
-   user = Responsavel.findOne({ where : {login : req.body.login }})
-   .then(user => {
-  if(user){
-      //  const password_valid = await bcrypt.compare(req.body.password,user.password);
-      if(req.body.senha === user.senha){
-        res.status(200).send({
-          id: user.id
-        });
-      } else {
-        res.status(400).json({ error : "Password Incorrect"});
-      }
-   
-   }else{
-     res.status(404).json({ error : "User does not exist!" });
-   }
+
+exports.findIdosoByResp = (req, res) => {
+  const id = req.params.id;
+
+  Responsavel.findAll({
+    where: { id: id },
+    include: ["idosos"]
   })
-  
-   };
-
-  exports.findIdosoByResp = (req, res) => {
-    const id = req.params.id;
-
-    Responsavel.findAll({
-      where: { id: id },
-      include: ["idosos"]
+    .then(data => {
+      res.send(data);
     })
-      .then(data => {
-        res.send(data);
-      })
-      .catch(err => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving pills."
-        });
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving pills."
       });
-  };
+    });
+};

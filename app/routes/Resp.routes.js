@@ -7,8 +7,6 @@ module.exports = app => {
 
   router.get("/all", resp.findAll);
 
-  router.post("/auth", resp.auth);
-
   router.get("/findidosobyresp/:id", resp.findIdosoByResp);
 
   app.use('/api/resp', router);

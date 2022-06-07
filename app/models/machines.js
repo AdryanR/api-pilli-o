@@ -1,6 +1,6 @@
 module.exports = (sequelize, Sequelize) => {
   const Machines = sequelize.define("Maquinas", {
-    id_maq: {
+    codigoMaquina: {
       type: Sequelize.STRING
     },
   });

@@ -30,11 +30,11 @@ db.pills = require("./pills.js")(sequelize, Sequelize);
 db.machines = require("./machines.js")(sequelize, Sequelize);
 db.responsavel = require("./responsavel.js")(sequelize, Sequelize);
 db.Idoso = require("./idoso.js")(sequelize, Sequelize);
-db.MaquinaResp = require("./maquinaresp.js")(sequelize, Sequelize);
+// db.MaquinaResp = require("./maquinaresp.js")(sequelize, Sequelize);
 db.disparo = require("./disparo.js")(sequelize, Sequelize);
 
 // relacionamento entre Máquina e responsavel... N:M
-db.responsavel.belongsToMany(db.machines, {
+/* db.responsavel.belongsToMany(db.machines, {
   through: {
     model: db.MaquinaResp
   },
@@ -47,7 +47,7 @@ db.machines.belongsToMany(db.responsavel, {
   },
   as: "login",
   foreignKey: "MachineId",
-});
+}); */
 
 // relacionamento entre idoso e responsável 1:N
 

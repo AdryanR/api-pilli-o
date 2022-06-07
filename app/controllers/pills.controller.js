@@ -4,9 +4,7 @@ const Disparos = db.disparo;
 const Idosos = db.Idoso;
 const Alarmes = db.pills;
 const Maquinas = db.machines;
-//const mqttServer = require("../config/mqtt.config.js");
 const mqtt = require('mqtt')
-//const Op = db.Sequelize.Op;
 
 exports.create = (req, res) => {
   // Validate request
