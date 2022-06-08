@@ -12,12 +12,12 @@ exports.create = async (req, res) => {
     return;
   }
 
-  let idMaq = await CreateMaquina(req.body.codigoMaquina);
-
   const idoso = {
     nome: req.body.idosos.nome,
-    telefone: req.body.idosos.telefone
+    telefone: req.body.idosos.telefone,
+    codigoMaquina: req.body.idosos.codigoMaquina
   }
+  let idMaq = await CreateMaquina(idoso.codigoMaquina);
   const responsavel = {
     nome: req.body.nome,
     login: req.body.login,
