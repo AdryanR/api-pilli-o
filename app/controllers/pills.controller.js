@@ -64,7 +64,6 @@ exports.returnEsp = async () => {
 
     const jsonDisparo = JSON.parse(JSON.stringify(resultados));
 
-
     for (let disparo of jsonDisparo) {
       let dataFinal = disparo.dataDisparo.substr(0, 11) + disparo.horaDisparo
       let dataPills = new Date(dataFinal)
@@ -77,7 +76,19 @@ exports.returnEsp = async () => {
 
         await FauxiliarAlarme(disparo.idAlarme, disparo.dataDisparo, disparo.horaDisparo)
 
-        await RequestMQTT(m.codigoMaquina, disparo.id, disparo.compartimento, disparo.idAlarme, disparo.horaDisparo);
+        // envia dados para o dispenser
+        let topicoDispenser = m.codigoMaquina + '';
+        let msgDispenser = '{"resposta": "Sim",' + '"idDisparo":' + disparo.id + ',"compartimento":' + disparo.compartimento + '}';
+        await RequestMQTT(topicoDispenser, msgDispenser);
+
+        // envia notificao pro idoso
+        let alarme = await Alarmes.findByPk(disparo.idAlarme)
+        let idoso = await Idosos.findByPk(alarme.idIdoso)
+        let topicoNotifacacaoIdoso = "api/elderly/" + alarme.idIdoso + "/alarm/notification"
+
+        let notificacaoIdoso = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"QtdeTomar":' + alarme.qtdeVezesRepetir + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+        await RequestMQTT(topicoNotifacacaoIdoso, notificacaoIdoso);
+        setTimeout( async () => (await VerificaTomouRemedio(disparo, alarme, idoso)), 180000);
         break
       }
     }
@@ -88,7 +99,7 @@ exports.returnEsp = async () => {
 };
 
 
-async function RequestMQTT(maquina, idDisparo, compartimento, idAlarme, horaDisparo) {
+async function RequestMQTT(topico, mensagem) {
 
   const host = 'xaf606cf.us-east-1.emqx.cloud'
   const port = '15118'
@@ -104,28 +115,9 @@ async function RequestMQTT(maquina, idDisparo, compartimento, idAlarme, horaDisp
     //reconnectPeriod: 1000,
   })
 
-  let maqString = maquina + '';
-  let idDisparoString = idDisparo + '';
-  let compartimentoString = compartimento + '';
-  let retorno = '{"resposta": "Sim",' + '"idDisparo":' + idDisparoString + ',"compartimento":' + compartimentoString + '}';
-
-  let alarme = await Alarmes.findByPk(idAlarme)
-  let idoso = await Idosos.findByPk(alarme.idIdoso)
-
-  let doseString = alarme.qtdeVezesRepetir + '';
-  let idIdosoString = alarme.idIdoso + '';
-  let idAlarmeString = idAlarme + '';
-  let topicoNotifacacao = "api/elderly/" + idIdosoString + "/alarm/notification"
-
-  let notificacao = '{"idIdoso":' + idIdosoString + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + compartimentoString + ',"QtdeTomar":' + doseString + ',"horaDisparo":' + horaDisparo + ',"idAlarme":' + idAlarmeString + '}';
   client.on('connect', () => {
     console.log('Connected')
-    client.publish(maqString, retorno, { qos: 0, retain: false }, (error) => {
-      if (error) {
-        console.error(error)
-      }
-    })
-    client.publish(topicoNotifacacao, notificacao, { qos: 0, retain: false }, (error) => {
+    client.publish(topico, mensagem, { qos: 0, retain: false }, (error) => {
       if (error) {
         console.error(error)
       }
@@ -194,7 +186,7 @@ exports.delete = (req, res) => {
     })
     .catch(err => {
       res.status(500).send({
-        message: "Could not delete Agennda with id=" + id
+        message: "Could not delete Agenda with id=" + id
       });
     });
 };
@@ -270,6 +262,32 @@ async function AlterByDose(alarme) {
   }
 
   await Pills.update(alarme, { where: { id: alarme.id } });
+
+}
+
+// verifica se idoso tomou remedio e envia notificacao
+async function VerificaTomouRemedio(disparo, alarme, idoso) {
+
+  console.log("Entrou na VerificaTomouRemedio")
+  let retorno = await db.sequelize.query('select tomouRemedio from disparoagendas where id = :id', {
+    replacements: { id: disparo.id },
+    type: db.sequelize.QueryTypes.SELECT
+  });
+
+  if (!retorno[0].tomouRemedio) {
+    // envia notificao que ainda não tomou remedio pro idoso
+    let topicoNotifacacaoIdoso = "api/elderly/" + alarme.idIdoso + "/alarm/notification/notake"
+
+    let notificacao = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"QtdeTomar":' + alarme.qtdeVezesRepetir + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+    await RequestMQTT(topicoNotifacacaoIdoso, notificacao);
+
+    if (idoso.idResp > 0){
+    // envia notificao pro responsável do idoso que ainda não tomou o remedio
+    let topicoNotifacacaoResponsavel = "api/responsible/" + idoso.idResp + "/alarm/notification/notake"
+
+    await RequestMQTT(topicoNotifacacaoResponsavel, notificacao);
+    }
+  }
 
 }
 
