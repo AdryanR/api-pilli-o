@@ -2,8 +2,9 @@ const db = require("../models");
 
 const Idoso = db.Idoso;
 const Op = db.Sequelize.Op;
+const Machines = db.machines;
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
   // Validate request
   if (!req.body.login) {
     res.status(400).send({
@@ -12,12 +13,13 @@ exports.create = (req, res) => {
     return;
   }
 
+  let idMaq = await CreateMaquina(req.body.codigoMaquina);
+
   const idoso = {
     nome: req.body.nome,
     login: req.body.login,
-    idMachine: req.body.idmachine,
-    idResp: req.body.idresp,
-    firebaseUserUid: req.body.firebaseUserUid
+    firebaseUserUid: req.body.firebaseUserUid,
+    idMachine: idMaq,
   }
 
   Idoso.create(idoso)
@@ -32,19 +34,14 @@ exports.create = (req, res) => {
     });
 };
 
-// exports.findAll = (req, res) => {
+async function CreateMaquina(codigoMaquina) {
+  let createMaq = await db.sequelize.query('INSERT INTO Maquinas (codigoMaquina) values (:id)', {
+    replacements: { id: codigoMaquina },
+    type: db.sequelize.QueryTypes.INSERT
+  });
 
-//   Idoso.findAll()
-//     .then(data => {
-//       res.send(data);
-//     })
-//     .catch(err => {
-//       res.status(500).send({
-//         message:
-//           err.message || "Some error occurred while retrieving pills."
-//       });
-//     });
-// };
+  return createMaq[0];
+}
 
 
 exports.findAllByIdoso = (req, res) => {
