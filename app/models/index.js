@@ -30,27 +30,9 @@ db.pills = require("./pills.js")(sequelize, Sequelize);
 db.machines = require("./machines.js")(sequelize, Sequelize);
 db.responsavel = require("./responsavel.js")(sequelize, Sequelize);
 db.Idoso = require("./idoso.js")(sequelize, Sequelize);
-// db.MaquinaResp = require("./maquinaresp.js")(sequelize, Sequelize);
 db.disparo = require("./disparo.js")(sequelize, Sequelize);
 
-// relacionamento entre Máquina e responsavel... N:M
-/* db.responsavel.belongsToMany(db.machines, {
-  through: {
-    model: db.MaquinaResp
-  },
-  as: "machines",
-  foreignKey: "loginId",
-});
-db.machines.belongsToMany(db.responsavel, {
-  through: {
-    model: db.MaquinaResp
-  },
-  as: "login",
-  foreignKey: "MachineId",
-}); */
-
 // relacionamento entre idoso e responsável 1:N
-
 db.Idoso.belongsTo(db.responsavel, {
   constraint: true,
   foreignKey: 'idResp',
@@ -63,7 +45,6 @@ db.responsavel.hasMany(db.Idoso, {
 })
 
 // relacionamento entre idoso e máquina 1:1
-
 db.Idoso.belongsTo(db.machines, {
   constraint: true,
   foreignKey: 'idMachine',
@@ -71,7 +52,6 @@ db.Idoso.belongsTo(db.machines, {
 })
 
 // relacionamento entre idoso e alarmes  1:N
-
 db.pills.belongsTo(db.Idoso, {
   constraint: true,
   foreignKey: 'idIdoso'
@@ -83,7 +63,6 @@ db.Idoso.hasMany(db.pills, {
 })
 
 // relacionamento entre alarme e disparo (histórico)  1:N
-
 db.disparo.belongsTo(db.pills, {
   constraint: true,
   foreignKey: 'idAlarme'

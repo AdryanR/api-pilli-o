@@ -1,8 +1,9 @@
 const db = require("../models");
 
 const Idoso = db.Idoso;
-const Op = db.Sequelize.Op;
-const Machines = db.machines;
+const Pills = db.pills;
+const Responsavel = db.responsavel;
+const Maquinas = db.machines;
 
 exports.create = async (req, res) => {
   // Validate request
@@ -13,7 +14,7 @@ exports.create = async (req, res) => {
     return;
   }
 
-  let idMaq = await CreateMaquina(req.body.codigoMaquina);
+  let idMaq = await CreateMaquina(req.body.codigoMaquina, req.body.qtdeCompartimentos);
 
   const idoso = {
     nome: req.body.nome,
@@ -34,22 +35,31 @@ exports.create = async (req, res) => {
     });
 };
 
-async function CreateMaquina(codigoMaquina) {
-  let createMaq = await db.sequelize.query('INSERT INTO Maquinas (codigoMaquina) values (:id)', {
-    replacements: { id: codigoMaquina },
+async function CreateMaquina(codigoMaquina, qtdeCompartimentos) {
+  let createMaq = await db.sequelize.query('INSERT INTO Maquinas (codigoMaquina, qtdeCompartimentos) values (:id, :qtdeCompartimentos)', {
+    replacements: { id: codigoMaquina, qtdeCompartimentos: qtdeCompartimentos },
     type: db.sequelize.QueryTypes.INSERT
   });
 
   return createMaq[0];
 }
 
-
 exports.findAllByIdoso = (req, res) => {
   const id = req.params.id;
 
   Idoso.findAll({
     where: { id: id },
-    include: ["responsavel", "maquinas", "alarmes"]
+    include: {
+      model: Maquinas,
+      as: 'maquinas',
+      model: Responsavel,
+      as: 'responsavel',
+      model: Pills,
+      as: 'alarmes',
+      where: {
+        excluido: 0
+      },
+    }
   })
     .then(data => {
       res.send(data);

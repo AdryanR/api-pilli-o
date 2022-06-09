@@ -15,9 +15,10 @@ exports.create = async (req, res) => {
   const idoso = {
     nome: req.body.idosos.nome,
     telefone: req.body.idosos.telefone,
-    codigoMaquina: req.body.idosos.codigoMaquina
+    codigoMaquina: req.body.idosos.codigoMaquina,
+    qtdeCompartimentos: req.body.idosos.qtdeCompartimentos
   }
-  let idMaq = await CreateMaquina(idoso.codigoMaquina);
+  let idMaq = await CreateMaquina(idoso.codigoMaquina, idoso.qtdeCompartimentos);
   const responsavel = {
     nome: req.body.nome,
     login: req.body.login,
@@ -38,9 +39,9 @@ exports.create = async (req, res) => {
     });
 };
 
-async function CreateMaquina(codigoMaquina) {
-  let createMaq = await db.sequelize.query('INSERT INTO Maquinas (codigoMaquina) values (:id)', {
-    replacements: { id: codigoMaquina },
+async function CreateMaquina(codigoMaquina, qtdeCompartimentos) {
+  let createMaq = await db.sequelize.query('INSERT INTO Maquinas (codigoMaquina, qtdeCompartimentos) values (:id, :qtdeCompartimentos)', {
+    replacements: { id: codigoMaquina, qtdeCompartimentos: qtdeCompartimentos },
     type: db.sequelize.QueryTypes.INSERT
   });
 

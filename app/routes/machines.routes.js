@@ -9,6 +9,8 @@ module.exports = app => {
 
   router.get("/verificaconfig-maq-user/:idMaquina", machines.VerificaConfigMaqUser)
 
+  router.get("/getCompartimentos/:idIdoso", machines.getCompartimentosByIdoso)
+
   //router.get("/addMaqResp/:maqid/:respid", machines.addMaqResp) // vincular Maquina C/ Resp.
 
   app.use('/api/machines', router);

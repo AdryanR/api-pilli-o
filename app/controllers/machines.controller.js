@@ -12,7 +12,8 @@ exports.create = (req, res) => {
   }
 
   const machines = {
-    codigoMaquina: req.body.codigomaquina
+    codigoMaquina: req.body.codigomaquina,
+    qtdeCompartimentos: req.body.qtdeCompartimentos
   }
 
   Machines.create(machines)
@@ -58,30 +59,25 @@ exports.VerificaConfigMaqUser = async (req, res) => {
   }
 };
 
-// Relacionamento entre máquinas e login responsável //
+// usado pra retornar os comps em uso
+exports.getCompartimentosByIdoso = async (req, res) => {
+  const idIdoso = req.params.idIdoso;
 
-/* exports.addMaqResp = (req, res) => {
-  const maqid = req.params.maqid;
-  const respid = req.params.respid;
-  return Responsavel.findByPk(respid)
-    .then((responsavel) => {
-      if (!responsavel) {
-        console.log("Responsável not found!");
-        return null;
-      }
-      return Machines.findByPk(maqid).then((machine) => {
-        if (!machine) {
-          console.log("Máquina not found!");
-          return null;
-        }
-        responsavel.addMachine(machine)
-        res.send({
-          message: "Vinculados!"
-        });
-        return responsavel;
-      });
-    })
-    .catch((err) => {
-      console.log(">> Houve um erro grave no vinculo: ", err);
-    });
-}; */
+  let search = await db.sequelize.query('SELECT (SELECT GROUP_CONCAT(compartimentos) FROM agendas WHERE idIdoso = :id and excluido = 0 and ativo = 1 ) AS compartimentosEmUso, qtdeCompartimentos FROM maquinas limit 1', {
+    replacements: { id: idIdoso },
+    type: db.sequelize.QueryTypes.SELECT
+  });
+
+  let compsUsadosArray = search[0].compartimentosEmUso.split(",");
+
+  const retorno = {
+    quantidadeCompartimentos: search[0].qtdeCompartimentos,
+    compartimentosEmUso: compsUsadosArray
+  }
+
+  if (retorno) {
+    res.send(retorno);
+  } else {
+    res.send({});
+  }
+}

@@ -15,6 +15,9 @@ module.exports = (sequelize, Sequelize) => {
     repetirEmQuantasHoras: {
       type: Sequelize.INTEGER
     },
+    qtdeComprimidosPorDose: {
+      type: Sequelize.INTEGER
+    },
     ativo: {
       type: Sequelize.INTEGER
     },

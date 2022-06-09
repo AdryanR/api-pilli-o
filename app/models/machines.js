@@ -3,6 +3,9 @@ module.exports = (sequelize, Sequelize) => {
     codigoMaquina: {
       type: Sequelize.STRING
     },
+    qtdeCompartimentos : {
+      type: Sequelize.INTEGER
+    },
   });
 
   return Machines;

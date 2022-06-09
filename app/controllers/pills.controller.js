@@ -21,6 +21,7 @@ exports.create = (req, res) => {
     horaInicio: req.body.horaInicio,
     qtdeVezesRepetir: req.body.qtdeVezesRepetir,
     repetirEmQuantasHoras: req.body.repetirEmQuantasHoras,
+    qtdeComprimidosPorDose: req.body.qtdeComprimidosPorDose,
     ativo: req.body.ativo,
     excluido: req.body.excluido,
     idIdoso: req.body.ididoso,
@@ -85,10 +86,17 @@ exports.returnEsp = async () => {
         let alarme = await Alarmes.findByPk(disparo.idAlarme)
         let idoso = await Idosos.findByPk(alarme.idIdoso)
         let topicoNotifacacaoIdoso = "api/elderly/" + alarme.idIdoso + "/alarm/notification"
+        let notificacaoIdoso;
 
-        let notificacaoIdoso = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"QtdeTomar":' + alarme.qtdeVezesRepetir + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+        if (alarme.qtdeComprimidosPorDose > 0) {
+          notificacaoIdoso = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"QtdeTomar":' + alarme.qtdeComprimidosPorDose + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+        }
+        else {
+          notificacaoIdoso = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+        }
+
         await RequestMQTT(topicoNotifacacaoIdoso, notificacaoIdoso);
-        setTimeout( async () => (await VerificaTomouRemedio(disparo, alarme, idoso)), 180000);
+        setTimeout(async () => (await VerificaTomouRemedio(disparo, alarme, idoso)), 180000);
         break
       }
     }
@@ -277,15 +285,20 @@ async function VerificaTomouRemedio(disparo, alarme, idoso) {
   if (!retorno[0].tomouRemedio) {
     // envia notificao que ainda não tomou remedio pro idoso
     let topicoNotifacacaoIdoso = "api/elderly/" + alarme.idIdoso + "/alarm/notification/notake"
-
-    let notificacao = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"QtdeTomar":' + alarme.qtdeVezesRepetir + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+    let notificacao;
+    if (alarme.qtdeComprimidosPorDose > 0) {
+      notificacao = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"QtdeTomar":' + alarme.qtdeComprimidosPorDose + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+    }
+    else {
+      notificacao = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+    }
     await RequestMQTT(topicoNotifacacaoIdoso, notificacao);
 
-    if (idoso.idResp > 0){
-    // envia notificao pro responsável do idoso que ainda não tomou o remedio
-    let topicoNotifacacaoResponsavel = "api/responsible/" + idoso.idResp + "/alarm/notification/notake"
+    if (idoso.idResp > 0) {
+      // envia notificao pro responsável do idoso que ainda não tomou o remedio
+      let topicoNotifacacaoResponsavel = "api/responsible/" + idoso.idResp + "/alarm/notification/notake"
 
-    await RequestMQTT(topicoNotifacacaoResponsavel, notificacao);
+      await RequestMQTT(topicoNotifacacaoResponsavel, notificacao);
     }
   }
 
