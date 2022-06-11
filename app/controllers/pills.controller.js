@@ -109,8 +109,8 @@ exports.returnEsp = async () => {
 
 async function RequestMQTT(topico, mensagem) {
 
-  const host = 'xaf606cf.us-east-1.emqx.cloud'
-  const port = '15118'
+  const host = 'cb12f099.eu-central-1.emqx.cloud'
+  const port = '15629'
   const clientId = `mqttServerAPI`
 
   const connectUrl = `mqtt://${host}:${port}`
@@ -119,7 +119,7 @@ async function RequestMQTT(topico, mensagem) {
     clean: true,
     connectTimeout: 4000,
     username: 'admin',
-    password: 'a%!undQWy7ys',
+    password: 'h8xkjEDU$oC%',
     //reconnectPeriod: 1000,
   })
 
