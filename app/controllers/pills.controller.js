@@ -176,27 +176,34 @@ exports.update = (req, res) => {
 };
 
 exports.delete = (req, res) => {
-  const id = req.params.id;
+  const idsAlarmes = req.body.idsAlarmes || [];
 
-  Pills.destroy({
-    where: { id: id }
-  })
-    .then(num => {
-      if (num == 1) {
-        res.send({
-          message: "Agenda was deleted successfully!"
-        });
-      } else {
-        res.send({
-          message: `Cannot delete Agenda with id=${id}. Maybe Agenda was not found!`
-        });
-      }
+  if (idsAlarmes.length) {
+    Pills.update({ excluido: 1 }, {
+      where: { id: idsAlarmes }
     })
-    .catch(err => {
-      res.status(500).send({
-        message: "Could not delete Agenda with id=" + id
+      .then(num => {
+        if (num == 1) {
+          res.send({
+            message: "Agenda was deleted successfully!"
+          });
+        } else {
+          res.send({
+            message: `Cannot delete Agendas with ids ${idsAlarmes.join(", ")}. Maybe Agendas were not found!`
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: `Could not delete Agendas with ids ${idsAlarmes.join(", ")}.`
+        });
       });
+  }
+  else {
+    res.send({
+      message: `Não foi possível identificar os alarmes a serem excluídos.`
     });
+  }
 };
 
 async function FauxiliarAlarme(idAlarme, dataDisparo, horaDisparo) {

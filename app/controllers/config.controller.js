@@ -23,8 +23,6 @@ async function VerificaResponsavel(id) {
     let resultadoResponsavel = await db.sequelize.query(
         (
             'SELECT RESP.id, RESP.nome, RESP.login FROM responsavels RESP' +
-            ' INNER JOIN idosos IDS ON IDS.idResp = RESP.id' +
-            ' INNER JOIN maquinas MAQ ON MAQ.id = IDS.idMachine' +
             ' WHERE RESP.firebaseUserUid = :id'
         ),
         {
@@ -36,7 +34,7 @@ async function VerificaResponsavel(id) {
     let responsavel = resultadoResponsavel[0] || {};
 
     if (responsavel.id) {
-        let resultadoIdosos = await db.sequelize.query(
+        let idosos = await db.sequelize.query(
             (
                 'SELECT IDS.id, IDS.nome, IDS.login FROM idosos IDS' +
                 ' INNER JOIN maquinas MAQ ON MAQ.id = IDS.idMachine' +
@@ -49,7 +47,7 @@ async function VerificaResponsavel(id) {
         );
 
         responsavel.funcao = "responsavel";
-        responsavel.idosos = resultadoIdosos[0];
+        responsavel.idosos = idosos;
     }
 
     return responsavel;

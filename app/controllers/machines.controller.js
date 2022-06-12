@@ -61,23 +61,32 @@ exports.VerificaConfigMaqUser = async (req, res) => {
 
 // usado pra retornar os comps em uso
 exports.getCompartimentosByIdoso = async (req, res) => {
-  const idIdoso = req.params.idIdoso;
+  try {
+    const idIdoso = req.params.idIdoso;
 
-  let search = await db.sequelize.query('SELECT (SELECT GROUP_CONCAT(compartimentos) FROM agendas WHERE idIdoso = :id and excluido = 0 and ativo = 1 ) AS compartimentosEmUso, qtdeCompartimentos FROM maquinas limit 1', {
-    replacements: { id: idIdoso },
-    type: db.sequelize.QueryTypes.SELECT
-  });
+    let search = await db.sequelize.query('SELECT (SELECT GROUP_CONCAT(compartimentos) FROM agendas WHERE idIdoso = :id and excluido = 0 and ativo = 1 ) AS compartimentosEmUso, qtdeCompartimentos FROM maquinas limit 1', {
+      replacements: { id: idIdoso },
+      type: db.sequelize.QueryTypes.SELECT
+    });
 
-  let compsUsadosArray = search[0].compartimentosEmUso.split(",");
+    let {
+      compartimentosEmUso,
+      qtdeCompartimentos
+    } = search[0] || {};
 
-  const retorno = {
-    quantidadeCompartimentos: search[0].qtdeCompartimentos,
-    compartimentosEmUso: compsUsadosArray
-  }
+    let compsUsadosArray = compartimentosEmUso?.split(",") || [];
 
-  if (retorno) {
-    res.send(retorno);
-  } else {
-    res.send({});
+    const retorno = {
+      qtdeCompartimentos,
+      compartimentosEmUso: compsUsadosArray
+    }
+
+    if (retorno) {
+      res.send(retorno);
+    } else {
+      res.send({});
+    }
+  } catch (error) {
+    res.status(500).send(`Erro ao obter compartimentos do Dispenser: ${error}`);
   }
 }

@@ -11,7 +11,7 @@ module.exports = app => {
   
   router.put("/alter/:id", pills.update);
 
-  router.delete("/delete/:id", pills.delete);
+  router.put("/delete", pills.delete);
 
   app.use('/api/pills', router);
 };
