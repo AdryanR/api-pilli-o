@@ -7,38 +7,42 @@ const Maquinas = db.machines;
 const mqtt = require('mqtt')
 
 exports.create = (req, res) => {
-  // Validate request
-  if (!req.body.nomeRemedio) {
-    res.status(400).send({
-      message: "Content can not be empty!"
-    });
-    return;
-  }
-
-  const pills = {
-    nomeRemedio: req.body.nomeRemedio,
-    dataInicio: req.body.dataInicio,
-    horaInicio: req.body.horaInicio,
-    qtdeVezesRepetir: req.body.qtdeVezesRepetir,
-    repetirEmQuantasHoras: req.body.repetirEmQuantasHoras,
-    qtdeComprimidosPorDose: req.body.qtdeComprimidosPorDose,
-    ativo: req.body.ativo,
-    excluido: req.body.excluido,
-    idIdoso: req.body.ididoso,
-    compartimentos: req.body.compartimentos
-  }
-
-  Pills.create(pills)
-    .then(data => {
-      res.send(data);
-      PrimeiroDisparoByAlarme({ id: data.id, dataInicio: pills.dataInicio, horaInicio: pills.horaInicio, compartimentos: pills.compartimentos })
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Pills."
+  try {
+    // Validate request
+    if (!req.body.nomeRemedio) {
+      res.status(400).send({
+        message: "Content can not be empty!"
       });
-    });
+      return;
+    }
+
+    const pills = {
+      nomeRemedio: req.body.nomeRemedio,
+      dataInicio: req.body.dataInicio,
+      horaInicio: req.body.horaInicio,
+      qtdeVezesRepetir: req.body.qtdeVezesRepetir,
+      repetirEmQuantasHoras: req.body.repetirEmQuantasHoras,
+      qtdeComprimidosPorDose: req.body.qtdeComprimidosPorDose,
+      ativo: 1,
+      excluido: 0,
+      idIdoso: req.body.idIdoso,
+      compartimentos: req.body.compartimentos
+    }
+
+    Pills.create(pills)
+      .then(data => {
+        res.send(data);
+        PrimeiroDisparoByAlarme({ id: data.id, dataInicio: pills.dataInicio, horaInicio: pills.horaInicio, compartimentos: pills.compartimentos })
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while creating the Pills."
+        });
+      });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
 };
 
 exports.findAll = (req, res) => {

@@ -7,7 +7,7 @@ module.exports = app => {
 
   router.put("/alter/:id", disparo.update);
 
-  router.get("/findDisparoByAlarme/:id", disparo.findDisparoByAlarme);
+  router.get("/findAlarmeDisparosByIdoso/:id", disparo.findAlarmeDisparosByIddoso);
 
   app.use('/api/disparos', router);
 };

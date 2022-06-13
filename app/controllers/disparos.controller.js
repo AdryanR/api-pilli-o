@@ -12,16 +12,16 @@ exports.create = (req, res) => {
     });
     return;
   }
-  
+
   const disparo = {
     dataDisparo: req.body.dataDisparo,
     horaDisparo: req.body.horaDisparo,
     tomouRemedio: req.body.tomouRemedio,
     compartimento: req.body.compartimento,
-    idAlarme : req.body.idAlarme,
-}
+    idAlarme: req.body.idAlarme,
+  }
 
-Disparo.create(disparo)
+  Disparo.create(disparo)
     .then(data => {
       res.send(data);
     })
@@ -34,7 +34,7 @@ Disparo.create(disparo)
 };
 
 // exports.findAll = (req, res) => {
-  
+
 //   Historico.findAll()
 //     .then(data => {
 //       res.send(data);
@@ -71,20 +71,20 @@ exports.update = (req, res) => {
     });
 };
 
-  exports.findDisparoByAlarme = (req, res) => {
-    const id = req.params.id;
+exports.findAlarmeDisparosByIddoso = (req, res) => {
+  const id = req.params.id;
 
-    Alarme.findAll({
-      where: { id: id },
-      include: ["disparos"]
+  Alarme.findAll({
+    where: { idIdoso: id, excluido: 0 },
+    include: ["disparos"]
+  })
+    .then(data => {
+      res.send(data);
     })
-      .then(data => {
-        res.send(data);
-      })
-      .catch(err => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving pills."
-        });
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving pills."
       });
-  };
+    });
+};
