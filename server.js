@@ -6,7 +6,7 @@ const app = express();
 
 var corsOptions = {
   // origin: "https://localhost:8080"
-  origin: "https://webclient-pillio.herokuapp.com/"
+  origin: "https://webclient-pillio.herokuapp.com"
 };
 
 app.use(cors(corsOptions));
