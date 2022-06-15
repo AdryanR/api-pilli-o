@@ -93,10 +93,10 @@ exports.returnEsp = async () => {
         let notificacaoIdoso;
 
         if (alarme.qtdeComprimidosPorDose > 0) {
-          notificacaoIdoso = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"QtdeTomar":' + alarme.qtdeComprimidosPorDose + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+          notificacaoIdoso = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":"' + idoso.nome + '","nomeRemedio":"' + alarme.nomeRemedio + '","compartimento":' + disparo.compartimento + ',"QtdeTomar":' + alarme.qtdeComprimidosPorDose + ',"horaDisparo":"' + disparo.horaDisparo + '","idAlarme":' + disparo.idAlarme + '}';
         }
         else {
-          notificacaoIdoso = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+          notificacaoIdoso = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":"' + idoso.nome + '","nomeRemedio":"' + alarme.nomeRemedio + '","compartimento":' + disparo.compartimento + ',"horaDisparo":"' + disparo.horaDisparo + '","idAlarme":' + disparo.idAlarme + '}';
         }
 
         await RequestMQTT(topicoNotifacacaoIdoso, notificacaoIdoso);
@@ -129,7 +129,7 @@ async function RequestMQTT(topico, mensagem) {
 
   client.on('connect', () => {
     console.log('Connected')
-    client.publish(topico, mensagem, { qos: 0, retain: false }, (error) => {
+    client.publish(topico, mensagem, { qos: 2, retain: false }, (error) => {
       if (error) {
         console.error(error)
       }
@@ -298,10 +298,10 @@ async function VerificaTomouRemedio(disparo, alarme, idoso) {
     let topicoNotifacacaoIdoso = "api/elderly/" + alarme.idIdoso + "/alarm/notification/notake"
     let notificacao;
     if (alarme.qtdeComprimidosPorDose > 0) {
-      notificacao = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"QtdeTomar":' + alarme.qtdeComprimidosPorDose + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+      notificacao = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":"' + idoso.nome + '","nomeRemedio":"' + alarme.nomeRemedio + '","compartimento":' + disparo.compartimento + ',"QtdeTomar":' + alarme.qtdeComprimidosPorDose + ',"horaDisparo":"' + disparo.horaDisparo + '","idAlarme":' + disparo.idAlarme + '}';
     }
     else {
-      notificacao = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":' + idoso.nome + ',"nomeRemedio":' + alarme.nomeRemedio + ',"compartimento":' + disparo.compartimento + ',"horaDisparo":' + disparo.horaDisparo + ',"idAlarme":' + disparo.idAlarme + '}';
+      notificacao = '{"idIdoso":' + alarme.idIdoso + ',"nomeIdoso":"' + idoso.nome + '","nomeRemedio":"' + alarme.nomeRemedio + '","compartimento":' + disparo.compartimento + ',"horaDisparo":"' + disparo.horaDisparo + '","idAlarme":' + disparo.idAlarme + '}';
     }
     await RequestMQTT(topicoNotifacacaoIdoso, notificacao);
 
