@@ -66,7 +66,7 @@ async function VerificaIdoso(id) {
         },
     );
 
-    let idoso = resultadoIdoso[0];
+    let idoso = resultadoIdoso[0] || {};
 
     if (idoso.id) {
         idoso.funcao = "idoso";
