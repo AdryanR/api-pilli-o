@@ -146,13 +146,16 @@ async function buscaDisparosByMaquina(maquina) {
     }
   });
 
-  let disparos = await db.sequelize.query('SELECT * FROM disparoagendas WHERE idAlarme IN (SELECT `id` FROM `AGENDAs` AS `AGENDA` WHERE `AGENDA`.`ativo` = 1 AND `AGENDA`.`idIdoso` = (:id) )', {
-    replacements: { id: idoso.id },
-    type: db.sequelize.QueryTypes.SELECT
-  });
+  let disparos = []
+
+  if (idoso) {
+    disparos = await db.sequelize.query('SELECT * FROM disparoagendas WHERE idAlarme IN (SELECT `id` FROM `AGENDAs` AS `AGENDA` WHERE `AGENDA`.`ativo` = 1 AND `AGENDA`.`idIdoso` = (:id) )', {
+      replacements: { id: idoso.id },
+      type: db.sequelize.QueryTypes.SELECT
+    });
+  }
 
   return disparos
-
 };
 
 exports.update = (req, res) => {
