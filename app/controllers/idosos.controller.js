@@ -14,7 +14,12 @@ exports.create = async (req, res) => {
     return;
   }
 
-  let idMaq = await CreateMaquina(req.body.codigoMaquina, req.body.qtdeCompartimentos);
+  let qtdePadraoCompartimentos = 15;
+
+  let idMaq = await CreateMaquina(
+    req.body.codigoMaquina,
+    req.body.qtdeCompartimentos || qtdePadraoCompartimentos
+  );
 
   const idoso = {
     nome: req.body.nome,
@@ -45,6 +50,8 @@ async function CreateMaquina(codigoMaquina, qtdeCompartimentos) {
 }
 
 exports.findAllByIdoso = (req, res) => {
+  // notificar();
+
   const id = req.params.id;
 
   Idoso.findAll({
@@ -71,3 +78,23 @@ exports.findAllByIdoso = (req, res) => {
       });
     });
 };
+
+function notificar() {
+  const mensagem = JSON.stringify({
+    "message": {
+      "token": "eEz-Q2sG8nQ:APA91bHJQRT0JJ...",
+      "notification": {
+        "title": "Título Mensagem Teste",
+        "body": "Conteúdo Mensagem Teste",
+        "icon": "favicon.ico"
+      },
+      "webpush": {
+        "fcm_options": {
+          "link": "https://webclient-pillio.herokuapp.com/#/"
+        }
+      }
+    }
+  });
+
+  fetch()
+}

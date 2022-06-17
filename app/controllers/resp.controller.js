@@ -4,39 +4,49 @@ const Responsavel = db.responsavel;
 const Op = db.Sequelize.Op;
 
 exports.create = async (req, res) => {
-  // Validate request
-  if (!req.body.login) {
-    res.status(400).send({
-      message: "Content can not be empty!"
-    });
-    return;
-  }
-
-  const idoso = {
-    nome: req.body.idosos.nome,
-    telefone: req.body.idosos.telefone,
-    codigoMaquina: req.body.idosos.codigoMaquina,
-    qtdeCompartimentos: req.body.idosos.qtdeCompartimentos
-  }
-  let idMaq = await CreateMaquina(idoso.codigoMaquina, idoso.qtdeCompartimentos);
-  const responsavel = {
-    nome: req.body.nome,
-    login: req.body.login,
-    firebaseUserUid: req.body.firebaseUserUid,
-  }
-
-  Responsavel.create(responsavel)
-    .then(data => {
-      res.send(data);
-      CreateIdoso(idoso, data.id, idMaq)
-      console.log(data)
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Pills."
+  try {
+    // Validate request
+    if (!req.body.login) {
+      res.status(400).send({
+        message: "Content can not be empty!"
       });
-    });
+      return;
+    }
+
+    const qtdePadraoCompartimentos = 15;
+
+    const idoso = {
+      firebaseUserUid: req.body.idosos[0]?.firebaseUserUid,
+      // codigoAcesso: req.body.idosos[0]?.codigoAcesso,
+      nome: req.body.idosos[0]?.nome,
+      login: req.body.idosos[0]?.login,
+      telefone: req.body.idosos[0]?.telefone,
+      codigoMaquina: req.body.idosos[0]?.codigoMaquina,
+      qtdeCompartimentos: req.body.idosos[0]?.qtdeCompartimentos || qtdePadraoCompartimentos
+    }
+    let idMaq = await CreateMaquina(idoso.codigoMaquina, idoso.qtdeCompartimentos);
+    
+    const responsavel = {
+      nome: req.body.nome,
+      login: req.body.login,
+      firebaseUserUid: req.body.firebaseUserUid,
+    }
+
+    Responsavel.create(responsavel)
+      .then(async data => {
+        await CreateIdoso(idoso, data.id, idMaq)
+        console.log(data)
+        res.send(data);
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while creating the Pills."
+        });
+      });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
 };
 
 async function CreateMaquina(codigoMaquina, qtdeCompartimentos) {
@@ -49,10 +59,27 @@ async function CreateMaquina(codigoMaquina, qtdeCompartimentos) {
 }
 
 async function CreateIdoso(idoso, idResp, idMaq) {
-  let createIdoso = await db.sequelize.query('INSERT INTO Idosos (nome, idResp, idMachine) values (:nome, :idResp, :idMaq)', {
-    replacements: { nome: idoso.nome, idResp: idResp, idMaq: idMaq },
-    type: db.sequelize.QueryTypes.INSERT
-  });
+  try {
+    let createIdoso = await db.sequelize.query(
+      // 'INSERT INTO Idosos (nome, login, firebaseUserUid, codigoAcesso, idResp, idMachine) ' +
+      // 'values (:nome, :login, :firebaseUserUid, :codigoAcesso, :idResp, :idMaq)',
+      'INSERT INTO Idosos (nome, login, firebaseUserUid, idResp, idMachine) ' +
+      'values (:nome, :login, :firebaseUserUid, :idResp, :idMaq)',
+      {
+        replacements: {
+          nome: idoso.nome,
+          login: idoso.login,
+          firebaseUserUid: idoso.firebaseUserUid,
+          // codigoAcesso: idoso.codigoAcesso,
+          idResp: idResp,
+          idMaq: idMaq,
+        },
+        type: db.sequelize.QueryTypes.INSERT
+      },
+    );
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 exports.findAll = (req, res) => {
