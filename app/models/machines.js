@@ -1,10 +1,17 @@
 module.exports = (sequelize, Sequelize) => {
   const Machines = sequelize.define("Maquinas", {
+    id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+    },
     codigoMaquina: {
       type: Sequelize.STRING
     },
-    qtdeCompartimentos : {
+    qtdeCompartimentos: {
       type: Sequelize.INTEGER
+    },
+    nomeRedeWifiConectada: {
+      type: Sequelize.STRING
     },
   });
 

@@ -5,5 +5,7 @@ module.exports = app => {
 
     router.post("/usuario-esta-configurado", config.UserConfig);
 
+    router.post("/get-configuracoes-idoso", config.getConfiguracoesByIdoso);
+
     app.use('/api/config/', router);
 };

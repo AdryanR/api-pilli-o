@@ -5,6 +5,8 @@ module.exports = app => {
 
   router.post("/create", idoso.create);
 
+  router.put("/update/:id", idoso.update);
+
   // router.get("/all", idoso.findAll);
 
   router.get("/findallbyidoso/:id", idoso.findAllByIdoso);

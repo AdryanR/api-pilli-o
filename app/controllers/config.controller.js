@@ -1,4 +1,6 @@
 const db = require("../models");
+const Responsavel = db.responsavel;
+const Idoso = db.Idoso;
 
 exports.UserConfig = async (req, res) => {
     const firebaseUserUid = req.body.firebaseUserUid;
@@ -73,4 +75,23 @@ async function VerificaIdoso(id) {
     }
 
     return idoso;
+};
+
+exports.getConfiguracoesByIdoso = async (req, res) => {
+    try {
+        const idIdoso = req.body.idIdoso;
+
+        const result = await Idoso.findAll({
+            raw: true,
+            nest: true,
+            where: { id: idIdoso },
+            include: ["maquinas"]
+        });
+
+        const configuracoes = result[0] || {};
+
+        res.status(200).send({ configuracoes });
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
 };

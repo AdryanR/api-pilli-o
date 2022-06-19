@@ -28,6 +28,18 @@ exports.create = (req, res) => {
     });
 };
 
+exports.update = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    await Machines.update(req.body, { where: { id } });
+
+    res.status(200).send();
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};
+
 exports.findAll = (req, res) => {
 
   Machines.findAll()

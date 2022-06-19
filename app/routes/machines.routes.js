@@ -5,6 +5,8 @@ module.exports = app => {
 
   router.post("/create", machines.create);
 
+  router.put("/update/:id", machines.update);
+
   router.get("/all", machines.findAll);
 
   router.get("/verificaconfig-maq-user/:idMaquina", machines.VerificaConfigMaqUser)
