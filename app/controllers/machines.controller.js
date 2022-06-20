@@ -1,31 +1,26 @@
 const db = require("../models");
 const Machines = db.machines;
+const Idoso = db.Idoso;
 const Op = db.Sequelize.Op;
 
-exports.create = (req, res) => {
-  // Validate request
-  if (!req.body.codigoMaquina) {
-    res.status(400).send({
-      message: "Content can not be empty!"
-    });
-    return;
-  }
-
-  const machines = {
-    codigoMaquina: req.body.codigomaquina,
-    qtdeCompartimentos: req.body.qtdeCompartimentos
-  }
-
-  Machines.create(machines)
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Pills."
+exports.create = async (req, res) => {
+  try {
+    // Validate request
+    if (!req.body.dispenser.codigoMaquina) {
+      res.status(400).send({
+        message: "Content can not be empty!"
       });
-    });
+      return;
+    }
+
+    const result = await Machines.create(req.body.dispenser);
+
+    await Idoso.update({ idMachine: result.id }, { where: { id: req.body.idIdoso } });
+
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
 };
 
 exports.update = async (req, res) => {

@@ -7,6 +7,8 @@ module.exports = app => {
 
   router.put("/update/:id", idoso.update);
 
+  router.post("/delete", idoso.delete);
+
   // router.get("/all", idoso.findAll);
 
   router.get("/findallbyidoso/:id", idoso.findAllByIdoso);

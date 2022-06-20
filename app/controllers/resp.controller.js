@@ -1,4 +1,5 @@
 const db = require("../models");
+const Idoso = db.Idoso;
 
 const Responsavel = db.responsavel;
 const Op = db.Sequelize.Op;
@@ -97,20 +98,19 @@ exports.findAll = (req, res) => {
 };
 
 
-exports.findIdosoByResp = (req, res) => {
-  const id = req.params.id;
+exports.findIdosoByResp = async (req, res) => {
+  try {
+    const id = req.params.id;
 
-  Responsavel.findAll({
-    where: { id: id },
-    include: ["idosos"]
-  })
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving pills."
-      });
+    const result = await Idoso.findAll({
+      raw: true,
+      nest: true,
+      where: { idResp: id },
+      include: ["maquinas"]
     });
+
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
 };
