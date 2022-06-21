@@ -20,6 +20,9 @@ module.exports = (sequelize, Sequelize) => {
     },
     firebaseUserUid: {
       type: Sequelize.STRING
+    },
+    idResp: {
+      type: Sequelize.INTEGER
     }
   });
 
