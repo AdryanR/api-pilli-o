@@ -18,7 +18,7 @@ exports.create = async (req, res) => {
 
     const idoso = {
       firebaseUserUid: req.body.idosos[0]?.firebaseUserUid,
-      // codigoAcesso: req.body.idosos[0]?.codigoAcesso,
+      codigoAcesso: req.body.idosos[0]?.codigoAcesso,
       nome: req.body.idosos[0]?.nome,
       login: req.body.idosos[0]?.login,
       telefone: req.body.idosos[0]?.telefone,
@@ -64,14 +64,14 @@ async function CreateIdoso(idoso, idResp, idMaq) {
     let createIdoso = await db.sequelize.query(
       // 'INSERT INTO Idosos (nome, login, firebaseUserUid, codigoAcesso, idResp, idMachine) ' +
       // 'values (:nome, :login, :firebaseUserUid, :codigoAcesso, :idResp, :idMaq)',
-      'INSERT INTO Idosos (nome, login, firebaseUserUid, idResp, idMachine) ' +
-      'values (:nome, :login, :firebaseUserUid, :idResp, :idMaq)',
+      'INSERT INTO Idosos (nome, login, firebaseUserUid, codigoAcesso, idResp, idMachine) ' +
+      'values (:nome, :login, :firebaseUserUid, :codigoAcesso, :idResp, :idMaq)',
       {
         replacements: {
           nome: idoso.nome,
           login: idoso.login,
           firebaseUserUid: idoso.firebaseUserUid,
-          // codigoAcesso: idoso.codigoAcesso,
+           codigoAcesso: idoso.codigoAcesso,
           idResp: idResp,
           idMaq: idMaq,
         },
