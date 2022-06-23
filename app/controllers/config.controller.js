@@ -90,6 +90,11 @@ exports.getConfiguracoesByIdoso = async (req, res) => {
 
         const configuracoes = result[0] || {};
 
+        if (configuracoes.idResp) {
+            const responsavel = await Responsavel.findByPk(configuracoes.idResp);
+            configuracoes.nomeResponsavel = responsavel?.nome;
+        }
+
         res.status(200).send({ configuracoes });
     } catch (error) {
         res.status(500).send({ message: error.message });

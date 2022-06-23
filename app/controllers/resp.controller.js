@@ -25,7 +25,7 @@ exports.create = async (req, res) => {
       codigoMaquina: req.body.idosos[0]?.codigoMaquina,
       qtdeCompartimentos: req.body.idosos[0]?.qtdeCompartimentos || qtdePadraoCompartimentos
     }
-    let idMaq = await CreateMaquina(idoso.codigoMaquina, idoso.qtdeCompartimentos);
+    let idMaq = await CreateMaquina(idoso.codigoMaquina, idoso.qtdeCompartimentos, req.body.idosos[0]?.nomeRedeWifiConectada || "");
     
     const responsavel = {
       nome: req.body.nome,
@@ -50,9 +50,9 @@ exports.create = async (req, res) => {
   }
 };
 
-async function CreateMaquina(codigoMaquina, qtdeCompartimentos) {
-  let createMaq = await db.sequelize.query('INSERT INTO Maquinas (codigoMaquina, qtdeCompartimentos) values (:id, :qtdeCompartimentos)', {
-    replacements: { id: codigoMaquina, qtdeCompartimentos: qtdeCompartimentos },
+async function CreateMaquina(codigoMaquina, qtdeCompartimentos, nomeRedeWifiConectada) {
+  let createMaq = await db.sequelize.query('INSERT INTO Maquinas (codigoMaquina, qtdeCompartimentos, nomeRedeWifiConectada) values (:id, :qtdeCompartimentos, :nomeRedeWifiConectada)', {
+    replacements: { id: codigoMaquina, qtdeCompartimentos: qtdeCompartimentos, nomeRedeWifiConectada },
     type: db.sequelize.QueryTypes.INSERT
   });
 
