@@ -58,8 +58,6 @@ async function CreateMaquina(codigoMaquina, qtdeCompartimentos, nomeRedeWifiCone
 }
 
 exports.findAllByIdoso = (req, res) => {
-  // notificar();
-
   const id = req.params.id;
 
   Idoso.findAll({
@@ -86,26 +84,6 @@ exports.findAllByIdoso = (req, res) => {
       });
     });
 };
-
-function notificar() {
-  const mensagem = JSON.stringify({
-    "message": {
-      "token": "eEz-Q2sG8nQ:APA91bHJQRT0JJ...",
-      "notification": {
-        "title": "Título Mensagem Teste",
-        "body": "Conteúdo Mensagem Teste",
-        "icon": "favicon.ico"
-      },
-      "webpush": {
-        "fcm_options": {
-          "link": "https://webclient-pillio.herokuapp.com/#/"
-        }
-      }
-    }
-  });
-
-  fetch()
-}
 
 exports.update = async (req, res) => {
   try {
