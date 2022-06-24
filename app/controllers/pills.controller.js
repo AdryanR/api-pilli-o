@@ -100,7 +100,7 @@ exports.returnEsp = async () => {
         }
 
         await RequestMQTT(topicoNotifacacaoIdoso, notificacaoIdoso);
-        setTimeout(async () => (await VerificaTomouRemedio(disparo, alarme, idoso)), 180000);
+        setTimeout(async () => (await VerificaTomouRemedio(disparo, alarme, idoso)), 60000);
         break
       }
     }
