@@ -33,20 +33,6 @@ exports.create = (req, res) => {
     });
 };
 
-// exports.findAll = (req, res) => {
-
-//   Historico.findAll()
-//     .then(data => {
-//       res.send(data);
-//     })
-//     .catch(err => {
-//       res.status(500).send({
-//         message:
-//           err.message || "Some error occurred while retrieving pills."
-//       });
-//     });
-// };
-
 exports.update = (req, res) => {
   const id = req.params.id;
 

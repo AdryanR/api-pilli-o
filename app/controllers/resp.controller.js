@@ -62,8 +62,6 @@ async function CreateMaquina(codigoMaquina, qtdeCompartimentos, nomeRedeWifiCone
 async function CreateIdoso(idoso, idResp, idMaq) {
   try {
     let createIdoso = await db.sequelize.query(
-      // 'INSERT INTO Idosos (nome, login, firebaseUserUid, codigoAcesso, idResp, idMachine) ' +
-      // 'values (:nome, :login, :firebaseUserUid, :codigoAcesso, :idResp, :idMaq)',
       'INSERT INTO Idosos (nome, login, firebaseUserUid, codigoAcesso, idResp, idMachine) ' +
       'values (:nome, :login, :firebaseUserUid, :codigoAcesso, :idResp, :idMaq)',
       {
