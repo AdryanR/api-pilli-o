@@ -124,7 +124,6 @@ async function RequestMQTT(topico, mensagem) {
     connectTimeout: 4000,
     username: 'admin',
     password: 'h8xkjEDU$oC%',
-    //reconnectPeriod: 1000,
   })
 
   client.on('connect', () => {
