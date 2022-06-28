@@ -16,8 +16,10 @@ A API entrega todos os endpoints para o sistema além de fazer verificações co
 - Node, Express, Sequelize, [Mqtt](https://mqtt.org/)
 
 ## Projeto
-Esta aplicação back-end faz parte de um projeto onde trabalhei com mais três pessoas: [Gabriel](https://github.com/mogba) , [Paloma](https://github.com/Paloma-Marian) e [Ricardo](https://github.com/ricardo-14).
-O front-end pode ser [acessado aqui](https://github.com/mogba/pillio)
+Esta aplicação back-end faz parte de um projeto onde trabalhei com mais três pessoas: [Gabriel](https://github.com/mogba) , [Paloma](https://github.com/Paloma-Marian) e [Ricardo](https://github.com/ricardo-14).<br>
+<b>O front-end pode ser [acessado aqui](https://github.com/mogba/pillio)</b><br>
+<b>O back-end pode ser [acessado aqui](https://github.com/AdryanR/api-pilli-o)</b><br>
+<b>O código do Dispenser pode ser [acessado aqui](https://github.com/AdryanR/dispenser-pilli-o)</b>
 
 Para exemplificar as funções, prints do front-end:
 <p align="center">
